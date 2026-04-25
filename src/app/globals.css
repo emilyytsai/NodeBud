@@ -22,7 +22,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-red-hat);
 }
 
 .bg-art {
@@ -31,7 +31,7 @@ body {
   font-family: monospace;
   font-size: 17px;
   line-height: 18px;
-  color: rgba(0, 4, 255, 0.443);
+  color: rgba(34, 75, 197, 0.6);
   pointer-events: none;
   user-select: none;
   overflow: hidden;
@@ -40,4 +40,77 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.inverted-title {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 10rem;
+  font-weight: 400;
+  color: rgb(215, 215, 215);
+  mix-blend-mode: difference;
+}
+
+.inverted-title span {
+  display: inline-block;
+  animation: letter-float 3s ease-in-out infinite;
+}
+
+.inverted-title span:nth-child(1) { animation-delay: 0s; }
+.inverted-title span:nth-child(2) { animation-delay: 0.15s; }
+.inverted-title span:nth-child(3) { animation-delay: 0.3s; }
+.inverted-title span:nth-child(4) { animation-delay: 0.45s; }
+.inverted-title span:nth-child(5) { animation-delay: 0.6s; }
+.inverted-title span:nth-child(6) { animation-delay: 0.75s; }
+.inverted-title span:nth-child(7) { animation-delay: 0.9s; }
+
+@keyframes letter-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.btn-primary {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-family: var(--font-dm-serif), serif;
+  color: rgb(255, 240, 213);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s ease;
+  background: #0d0d0d;
+  z-index: 0;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 20%,
+    transparent 40%
+  );
+  animation: spin-border 4s linear infinite;
+  z-index: -1;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 999px;
+  background: #0d0d0d;
+  z-index: -1;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+}
+
+@keyframes spin-border {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
