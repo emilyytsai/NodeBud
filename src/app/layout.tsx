@@ -1,7 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
+import { Geist, Geist_Mono, DM_Serif_Display, Red_Hat_Display } from "next/font/google";
 import "./globals.css";
+
+const dmSerif = DM_Serif_Display({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-dm-serif",
+});
+
+const redHat = Red_Hat_Display({
+  variable: "--font-red-hat",
+  subsets: ["latin"],
+});
 
 const geistSans = Geist({
   variable: "--font-sans",
@@ -14,9 +24,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CareerPrep AI",
-  description:
-    "Practice interviews with an AI that watches your posture, listens to your answers, and remembers you next time.",
+  title: "NodeBud",
+  description: "AI-powered mock interview coach",
 };
 
 export default function RootLayout({
@@ -27,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${dmSerif.variable} ${redHat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}
