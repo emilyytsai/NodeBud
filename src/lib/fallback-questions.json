@@ -1,0 +1,52 @@
+[
+  {
+    "question": "Tell me about a time you debugged a particularly tricky issue. Walk me through your process.",
+    "targets": ["problem_solving", "communication"],
+    "type": "behavioral"
+  },
+  {
+    "question": "How would you design a URL shortener like bit.ly? Focus on the data model and the read path.",
+    "targets": ["system_design"],
+    "type": "system_design"
+  },
+  {
+    "question": "Describe a project you're proud of. What was your specific contribution?",
+    "targets": ["communication", "ownership"],
+    "type": "behavioral"
+  },
+  {
+    "question": "Explain the difference between a stack and a queue. When would you use each?",
+    "targets": ["data_structures"],
+    "type": "technical"
+  },
+  {
+    "question": "Tell me about a time you disagreed with a teammate. How did you resolve it?",
+    "targets": ["teamwork", "communication"],
+    "type": "behavioral"
+  },
+  {
+    "question": "Walk me through what happens when you type a URL into your browser and hit enter.",
+    "targets": ["networking", "fundamentals"],
+    "type": "technical"
+  },
+  {
+    "question": "How do you decide between using a SQL database vs a NoSQL database?",
+    "targets": ["databases", "system_design"],
+    "type": "technical"
+  },
+  {
+    "question": "Describe a time you had to learn a new technology quickly. How did you approach it?",
+    "targets": ["learning_agility"],
+    "type": "behavioral"
+  },
+  {
+    "question": "What's the time complexity of binary search, and why does sorting the array first matter?",
+    "targets": ["algorithms"],
+    "type": "technical"
+  },
+  {
+    "question": "Tell me about a technical decision you made that you later regretted. What did you learn?",
+    "targets": ["judgment", "self_awareness"],
+    "type": "behavioral"
+  }
+]
