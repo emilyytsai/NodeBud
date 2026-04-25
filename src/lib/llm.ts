@@ -1,10 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-if (!process.env.GOOGLE_AI_KEY) {
-  throw new Error("GOOGLE_AI_KEY is not set");
-}
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY ?? "");
 
 export const GEMMA_MODEL = process.env.GEMMA_MODEL_NAME ?? "gemma-2-9b-it";
 
