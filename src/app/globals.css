@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #161616;
     --foreground: #ededed;
   }
 }
@@ -23,4 +23,21 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.bg-art {
+  position: fixed;
+  inset: 0;
+  font-family: monospace;
+  font-size: 17px;
+  line-height: 18px;
+  color: rgba(0, 4, 255, 0.443);
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+  white-space: pre;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
