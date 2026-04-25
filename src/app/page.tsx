@@ -1,20 +1,19 @@
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
-      <h1 className="text-4xl font-bold">NodeBud</h1>
-      <p className="max-w-md text-center text-gray-500">
+    <main className="flex flex-1 flex-col items-center justify-center gap-6 p-8">
+      <h1 className="text-5xl font-bold tracking-tight">CareerPrep AI</h1>
+      <p className="max-w-md text-center text-lg text-muted-foreground">
         Practice interviews with an AI that watches your posture, listens to
         your answers, and remembers you next time.
       </p>
-      <p className="text-xs text-gray-400">
-        Webcam and audio are processed in your browser. We don't store video.
+      <p className="max-w-md text-center text-xs text-muted-foreground">
+        Webcam and audio are processed in your browser. We don&apos;t store
+        video.
       </p>
-      <Link
-        href="/setup"
-        className="rounded-md bg-black px-6 py-3 text-white hover:bg-gray-800"
-      >
+      <Link href="/setup" className={buttonVariants({ size: "lg" })}>
         Start a mock interview →
       </Link>
     </main>
