@@ -14,7 +14,7 @@ const redHat = Red_Hat_Display({
 });
 
 const geistSans = Geist({
-  variable: "--font-sans",
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
@@ -38,10 +38,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${dmSerif.variable} ${redHat.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
-        <Toaster />
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
