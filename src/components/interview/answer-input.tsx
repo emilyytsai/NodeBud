@@ -68,13 +68,16 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
             {micActive ? "⏹ Stop mic" : "🎤 Mic"}
           </button>
         )}
-        <button
-          onClick={handleSubmit}
-          disabled={disabled || !transcript.trim()}
-          className="btn-primary flex-1 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Submit Answer
-        </button>
+        <div className="btn-wrapper flex-1">
+          <button
+            onClick={handleSubmit}
+            disabled={disabled || !transcript.trim()}
+            className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ border: '1px solid rgba(255, 255, 255, 0.4)' }}
+          >
+            Submit
+          </button>
+        </div>
       </div>
     </div>
   );

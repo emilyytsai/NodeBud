@@ -254,7 +254,7 @@ export default function InterviewPage({
                     <span className="text-amber-300 animate-pulse">● Speaking...</span>
                   )}
                   {istate.status === "awaiting_answer" && "Waiting for your answer..."}
-                  {istate.status === "scoring_answer" && "Evaluating..."}
+                  {istate.status === "scoring_answer" && "Thinking about your answer..."}
                   {istate.status === "loading_intro" && "Preparing next question..."}
                 </p>
 
