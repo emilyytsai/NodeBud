@@ -27,10 +27,13 @@ body {
 
 .bg-art {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   font-family: monospace;
-  font-size: 17px;
-  line-height: 18px;
+  font-size: 1.4vw;
+  line-height: 1.05;
   color: rgba(34, 75, 197, 0.6);
   pointer-events: none;
   user-select: none;
@@ -40,14 +43,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .bg-art {
+    font-size: 4vh;
+    line-height: 1.05;
+  }
 }
 
 .inverted-title {
   font-family: var(--font-dm-serif), serif;
-  font-size: 10rem;
+  font-size: clamp(6rem, 14vw, 11rem);
   font-weight: 400;
   color: rgb(215, 215, 215);
   mix-blend-mode: difference;
+  white-space: nowrap;
 }
 
 .inverted-title span {
@@ -68,25 +80,24 @@ body {
   50% { transform: translateY(-8px); }
 }
 
-.btn-primary {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
-  font-family: var(--font-dm-serif), serif;
-  color: rgb(255, 240, 213);
+.btn-wrapper {
   position: relative;
+  border-radius: 999px;
+  padding: 1.5px;
   overflow: hidden;
   transition: transform 0.4s ease;
-  background: #0d0d0d;
-  z-index: 0;
 }
 
-.btn-primary::before {
+.btn-wrapper:hover {
+  transform: translateY(-3px);
+}
+
+.btn-wrapper::before {
   content: '';
   position: absolute;
-  inset: -2px;
-  border-radius: 999px;
+  inset: -200%;
+  width: 500%;
+  height: 500%;
   background: conic-gradient(
     from 0deg,
     transparent 0%,
@@ -94,20 +105,23 @@ body {
     transparent 40%
   );
   animation: spin-border 4s linear infinite;
-  z-index: -1;
+  transform-origin: center;
 }
 
-.btn-primary::after {
-  content: '';
-  position: absolute;
-  inset: 1px;
+.btn-primary {
+  display: block;
   border-radius: 999px;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-family: var(--font-dm-serif), serif;
+  color: rgb(255, 240, 213);
   background: #0d0d0d;
-  z-index: -1;
+  position: relative;
+  z-index: 1;
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px);
+  transform: none;
 }
 
 @keyframes spin-border {
