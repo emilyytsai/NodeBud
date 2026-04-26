@@ -12,6 +12,10 @@ import { useTTS } from "@/components/interview/audio-player";
 import { QuestionStats } from "@/lib/scoring/question-stats";
 import type { VerbalStatsResult } from "@/lib/scoring/verbal-stats";
 import type { InterviewState } from "@/lib/interview-state";
+import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
+import type { CalibrationStatus } from "@/lib/scoring/calibration";
+import { CalibrationBanner } from "@/components/interview/calibration-banner";
+import { LandmarkCanvas } from "@/components/interview/landmark-canvas";
 import type { ParsedJd } from "@/lib/schemas/parsed-jd";
 import type { PersonaId } from "@/lib/personas";
 import { PERSONAS } from "@/lib/personas";
@@ -63,6 +67,12 @@ export default function InterviewPage({
   const [ttsMode, setTtsMode] = useState<"elevenlabs" | "browser">("elevenlabs");
   const [posture, setPosture] = useState(100);
   const [eyeContact, setEyeContact] = useState(100);
+  const [calibrationStatus, setCalibrationStatus] = useState<CalibrationStatus>("no_detection");
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [landmarks, setLandmarks] = useState<{
+    pose: NormalizedLandmark[] | null;
+    face: NormalizedLandmark[] | null;
+  }>({ pose: null, face: null });
   const [istate, setIstate] = useState<InterviewState>(INITIAL_STATE);
   const [reviewUrl, setReviewUrl] = useState("/setup");
 
@@ -202,6 +212,13 @@ export default function InterviewPage({
     setIstate(s => ({ ...s, answers: [...s.answers, transcript], status: "scoring_answer" }));
   }, []);
 
+  const handleLandmarksChange = useCallback(
+    (pose: NormalizedLandmark[] | null, face: NormalizedLandmark[] | null) => {
+      setLandmarks({ pose, face });
+    },
+    []
+  );
+
   const handleStreamGranted = useCallback((s: MediaStream) => setStream(s), []);
   const persona = setup ? PERSONAS[setup.persona] : null;
   const currentQ = istate.questions[istate.questionIndex];
@@ -258,15 +275,30 @@ export default function InterviewPage({
                       muted
                       className="w-full h-full object-cover scale-x-[-1]"
                     />
+                    <LandmarkCanvas show={showOverlay} videoRef={videoRef} landmarks={landmarks} />
+                    {/* Banner overlaid inside the video — no layout shift */}
+                    {calibrationStatus !== "ok" && (
+                      <div className="absolute top-2 left-2 right-2 z-10">
+                        <CalibrationBanner status={calibrationStatus} />
+                      </div>
+                    )}
                     <TrackingLoop
                       videoRef={videoRef}
                       questionStats={questionStatsRef.current}
                       onPostureChange={setPosture}
                       onEyeContactChange={setEyeContact}
+                      onLandmarksChange={handleLandmarksChange}
+                      onCalibrationChange={setCalibrationStatus}
                     />
                   </div>
                 )}
-                <ConfidenceGauges posture={posture} eyeContact={eyeContact} />
+                <ConfidenceGauges
+                  posture={posture}
+                  eyeContact={eyeContact}
+                  calibrated={cvDisabled || calibrationStatus === "ok"}
+                  showOverlay={showOverlay}
+                  onToggleOverlay={() => setShowOverlay(v => !v)}
+                />
               </div>
 
               <div className="flex flex-col items-center gap-2">
