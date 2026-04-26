@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, DM_Serif_Display, Red_Hat_Display } from "next/font/google";
 import "./globals.css";
 import BgArt from "@/components/BgArt";
+import { SiteHeader } from "@/components/site-header";
 
 const dmSerif = DM_Serif_Display({
   weight: "400",
@@ -25,7 +26,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NodeBud",
+  title: "NodeBud — CareerPrep AI",
   description: "AI-powered mock interview coach",
 };
 
@@ -41,6 +42,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <BgArt />
+        <SiteHeader />
         {children}
       </body>
     </html>
