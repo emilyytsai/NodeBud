@@ -113,6 +113,7 @@ Full plan: `docs/PLAN.md` § Phase 4. Summary:
 - `npm run build` passes cleanly as of Phase 3 completion.
 - `.env.local` on Samson's machine: **GOOGLE_AI_KEY is the leaked/revoked key — must be replaced with a new key before the app will work.** `GEMMA_MODEL_NAME=gemma-3-4b-it`. `FLASH_MODEL_NAME` line should be deleted.
 - Three `ELEVENLABS_VOICE_*` keys are still blank → TTS falls back to browser `speechSynthesis`. Fill these in during Phase 4.
+- `package.json` dev script now has `--webpack` flag (`"next dev --webpack"`) — required on Windows paths with spaces. This was already on `sam`; also applied to `master` during merge conflict resolution.
 
 ## ⚠️ Outstanding before next session
 
