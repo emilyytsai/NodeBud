@@ -20,6 +20,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     const SR = (window as any).webkitSpeechRecognition ?? (window as any).SpeechRecognition;
@@ -30,6 +31,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
   useEffect(() => {
     return () => {
       recognizerRef.current?.stop();
+      micStreamRef.current?.getTracks().forEach(t => t.stop());
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
     };
@@ -37,6 +39,8 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
 
   const stopAudio = () => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    micStreamRef.current?.getTracks().forEach(t => t.stop());
+    micStreamRef.current = null;
     if (audioContextRef.current) audioContextRef.current.close();
     audioContextRef.current = null;
     analyserRef.current = null;
@@ -46,6 +50,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
   const startAudio = async () => {
     try {
       const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micStreamRef.current = micStream;
       const ctx = new AudioContext();
       const source = ctx.createMediaStreamSource(micStream);
       const analyser = ctx.createAnalyser();
@@ -103,6 +108,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
       stopAudio();
     }
     const verbalResult = verbalStatsRef.current.finalize(transcript);
+    verbalStatsRef.current.reset();
     onSubmit(transcript, verbalResult);
     setTranscript("");
   };
