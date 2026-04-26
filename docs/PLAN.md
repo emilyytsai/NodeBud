@@ -298,7 +298,7 @@ NodeBud/
 
 ---
 
-## Phase 4 — Polish + dashboard + ElevenLabs on (4 hr, hard stop 5)
+## Phase 4 — Polish + dashboard + ElevenLabs on ✅ COMPLETE
 
 **Goal:** App looks like a product, not a hackathon project. Dashboard reads from localStorage with a trend chart. ElevenLabs is enabled for the demo.
 
@@ -464,7 +464,7 @@ Per `docs/MVP-SPEC.md` §"What Claude Code should NOT do" — these are explicit
 | 1. Gemma loop | 3 | 3.75 | JD → questions on screen |
 | 2. CV gauges + heuristics bundle | 4 | 7.75 | Posture + eye contact live |
 | 3. Voice + answer loop ✅ | 4 | 11.75 | Full interview cycle |
-| 4. Polish + dashboard + ElevenLabs on | 4 | 15.75 | Looks like a product |
+| 4. Polish + dashboard + ElevenLabs on ✅ | 4 | 15.75 | Looks like a product |
 | 4.5. Backboard add-on (gated, optional) | 3 | 18.75 | Tier 2 prize claimed |
 | 5. Submit + demo video | 3 | 21.75 (or 18.75 w/o 4.5) | Devpost done |
 

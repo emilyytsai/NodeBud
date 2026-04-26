@@ -12,7 +12,7 @@ export function QuestionPanel({ state, onAnswerSubmit }: QuestionPanelProps) {
   const currentQ = state.questions[state.questionIndex];
 
   return (
-    <div className="glass-input rounded-xl border border-white/20 p-5 flex flex-col gap-4 min-h-[300px]">
+    <div className="question-panel p-5">
       {/* Question */}
       <div className="flex-1">
         <div className="text-xs text-gray-400 mb-2">

@@ -178,6 +178,12 @@ export default function InterviewPage({
     }
   }, [stream]);
 
+  useEffect(() => {
+    return () => {
+      stop();
+    };
+  }, [stop]);
+
   const handleAnswerSubmit = useCallback((transcript: string) => {
     setIstate(s => ({ ...s, answers: [...s.answers, transcript], status: "scoring_answer" }));
   }, []);
@@ -191,12 +197,15 @@ export default function InterviewPage({
       <div className="relative mx-auto max-w-5xl px-4 pt-6 pb-12 space-y-4 sm:space-y-6">
 
         <div className="space-y-1">
-          <Link
-            href={reviewUrl}
+          <button
+            onClick={() => {
+              stop();
+              window.location.href = reviewUrl;
+            }}
             className="inline-block text-amber-100 hover:text-white hover:-translate-y-1 transition text-sm sm:text-base"
           >
             ← &nbsp;Exit
-          </Link>
+          </button>
           <h1 className="setup-title">Interview Room</h1>
           {setup && (
             <p className="text-amber-100 text-sm sm:text-base">
@@ -206,7 +215,13 @@ export default function InterviewPage({
         </div>
 
         {istate.status === "show_report" ? (
-          <ScoreReport questions={istate.questions} answers={istate.answers} scores={istate.scores} />
+          <ScoreReport
+            questions={istate.questions}
+            answers={istate.answers}
+            scores={istate.scores}
+            roleTitle={setup?.parsed?.role_title ?? "Software Engineer"}
+            persona={setup?.persona ?? "encouraging_recruiter"}
+          />
         ) : !stream && !cvDisabled ? (
           <PermissionsGate onGranted={handleStreamGranted} />
         ) : (
@@ -281,7 +296,7 @@ export default function InterviewPage({
                     <div className="flex items-center gap-2 text-gray-400 text-sm justify-center">
                       <ThinkingIndicator />
                       {istate.status === "scoring_answer" && "Evaluating..."}
-                      {istate.status === "loading_intro" && "Loading next..."}
+                      {istate.status === "loading_intro" && "Loading..."}
                     </div>
                   )}
                 </div>
