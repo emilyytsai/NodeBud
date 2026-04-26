@@ -2,11 +2,12 @@
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import Image from "next/image";
 import { PermissionsGate } from "@/components/interview/permissions-gate";
-import { WebcamView } from "@/components/interview/webcam-view";
 import { ConfidenceGauges } from "@/components/interview/confidence-gauges";
-import { QuestionPanel } from "@/components/interview/question-panel";
 import { ScoreReport } from "@/components/interview/score-report";
+import { AnswerInput } from "@/components/interview/answer-input";
+import { ThinkingIndicator } from "@/components/interview/thinking-indicator";
 import { useTTS } from "@/components/interview/audio-player";
 import { QuestionStats } from "@/lib/scoring/question-stats";
 import type { InterviewState } from "@/lib/interview-state";
@@ -59,6 +60,7 @@ export default function InterviewPage({
   const [posture, setPosture] = useState(100);
   const [eyeContact, setEyeContact] = useState(100);
   const [istate, setIstate] = useState<InterviewState>(INITIAL_STATE);
+  const [reviewUrl, setReviewUrl] = useState("/setup");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const questionStatsRef = useRef(new QuestionStats());
@@ -68,7 +70,6 @@ export default function InterviewPage({
 
   const { speak } = useTTS(setup?.persona ?? "encouraging_recruiter", ttsMode);
 
-  // Restore setup + state from sessionStorage; read URL flags
   useEffect(() => {
     const saved = sessionStorage.getItem(`session:${sessionId}:setup`);
     if (saved) setSetup(JSON.parse(saved));
@@ -81,20 +82,21 @@ export default function InterviewPage({
     if (savedState) {
       try { setIstate(JSON.parse(savedState)); } catch { /* ignore */ }
     }
+
+    const keys = Object.keys(sessionStorage);
+    const sessionKey = keys.find(k => k === `session:${sessionId}:setup`);
+    if (sessionKey) setReviewUrl(`/setup/review?session=${sessionId}`);
   }, [sessionId]);
 
-  // Mirror state to sessionStorage (skip pure initial state to avoid clobbering a restored save)
   useEffect(() => {
     if (istate.questionIndex === 0 && istate.status === "loading_intro" && istate.questions.length === 0) return;
     sessionStorage.setItem(`session:${sessionId}:state`, JSON.stringify(istate));
   }, [istate, sessionId]);
 
-  // loading_intro → speaking_question: fetch next question
   useEffect(() => {
     if (istate.status !== "loading_intro" || !setup) return;
     const { questionIndex, questions } = istate;
 
-    // Question already in state (restored from sessionStorage)
     if (questions.length > questionIndex) {
       setIstate(s => ({ ...s, status: "speaking_question" }));
       return;
@@ -118,7 +120,6 @@ export default function InterviewPage({
       .catch(() => setIstate(s => ({ ...s, status: "speaking_question" })));
   }, [istate.status, istate.questionIndex, setup]);
 
-  // speaking_question → awaiting_answer: play TTS then yield to user
   useEffect(() => {
     if (istate.status !== "speaking_question") return;
     const { questionIndex, questions } = istate;
@@ -133,7 +134,6 @@ export default function InterviewPage({
     );
   }, [istate.status, istate.questionIndex, istate.questions, speak]);
 
-  // scoring_answer → loading_intro (next Q) or show_report
   useEffect(() => {
     if (istate.status !== "scoring_answer") return;
     const { questionIndex, questions, answers } = istate;
@@ -178,21 +178,33 @@ export default function InterviewPage({
 
   const handleStreamGranted = useCallback((s: MediaStream) => setStream(s), []);
   const persona = setup ? PERSONAS[setup.persona] : null;
+  const currentQ = istate.questions[istate.questionIndex];
 
-  const rightPanel =
-    istate.status === "show_report" ? (
-      <ScoreReport questions={istate.questions} answers={istate.answers} scores={istate.scores} />
-    ) : (
-      <QuestionPanel state={istate} onAnswerSubmit={handleAnswerSubmit} />
-    );
+  const UserCamera = () => (
+    <div className="relative rounded-xl overflow-hidden glass-input border border-white/20 aspect-video w-full">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="w-full h-full object-cover"
+      />
+      <TrackingLoop
+        videoRef={videoRef}
+        questionStats={questionStatsRef.current}
+        onPostureChange={setPosture}
+        onEyeContactChange={setEyeContact}
+      />
+    </div>
+  );
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="relative mx-auto max-w-2xl px-4 pt-6 pb-12 space-y-4 sm:space-y-6">
+      <div className="relative mx-auto max-w-5xl px-4 pt-6 pb-12 space-y-4 sm:space-y-6">
 
         <div className="space-y-1">
           <Link
-            href="/setup"
+            href={reviewUrl}
             className="inline-block text-amber-100 hover:text-white hover:-translate-y-1 transition text-sm sm:text-base"
           >
             ← &nbsp;Exit
@@ -200,28 +212,82 @@ export default function InterviewPage({
           <h1 className="setup-title">Interview Room</h1>
           {setup && (
             <p className="text-amber-100 text-sm sm:text-base">
-              {setup.parsed?.role_title ?? "Software Engineer"} · {persona?.label ?? setup.persona}
+              {setup.parsed?.role_title ?? "Software Engineer"}
             </p>
           )}
         </div>
 
-        {cvDisabled ? (
-          <div className="space-y-4">{rightPanel}</div>
-        ) : !stream ? (
+        {istate.status === "show_report" ? (
+          <ScoreReport questions={istate.questions} answers={istate.answers} scores={istate.scores} />
+        ) : !stream && !cvDisabled ? (
           <PermissionsGate onGranted={handleStreamGranted} />
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-3">
-              <WebcamView stream={stream} videoRef={videoRef} />
-              <ConfidenceGauges posture={posture} eyeContact={eyeContact} />
-              <TrackingLoop
-                videoRef={videoRef}
-                questionStats={questionStatsRef.current}
-                onPostureChange={setPosture}
-                onEyeContactChange={setEyeContact}
-              />
+          <div className="space-y-4">
+
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_225px] gap-4 items-end">
+
+              <div className="space-y-3">
+                {cvDisabled ? (
+                  <div className="glass-input rounded-xl border border-white/20 p-6 text-center text-gray-400 text-sm aspect-video flex items-center justify-center">
+                    CV mode off
+                  </div>
+                ) : (
+                  <UserCamera />
+                )}
+                <ConfidenceGauges posture={posture} eyeContact={eyeContact} />
+              </div>
+
+              <div className="flex flex-col items-center gap-2">
+                <div className="relative w-40 h-40 sm:w-52 sm:h-52 shrink-0">
+                  <Image
+                    src="/interviewer.png"
+                    alt="Interviewer"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <p className="text-sm font-semibold text-amber-100 -mt-2">
+                  {persona?.label ?? "Interviewer"} - Interviewer
+                </p>
+                <p className="text-xs text-gray-400">
+                  {istate.status === "speaking_question" && (
+                    <span className="text-amber-300 animate-pulse">● Speaking...</span>
+                  )}
+                  {istate.status === "awaiting_answer" && "Waiting for your answer..."}
+                  {istate.status === "scoring_answer" && "Evaluating..."}
+                  {istate.status === "loading_intro" && "Preparing next question..."}
+                </p>
+
+                <div className="w-full">
+                  {istate.status === "awaiting_answer" && (
+                    <AnswerInput onSubmit={handleAnswerSubmit} />
+                  )}
+                  {(istate.status === "scoring_answer" || istate.status === "loading_intro") && (
+                    <div className="flex items-center gap-2 text-gray-400 text-sm justify-center">
+                      <ThinkingIndicator />
+                      {istate.status === "scoring_answer" && "Evaluating..."}
+                      {istate.status === "loading_intro" && "Loading next..."}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div>{rightPanel}</div>
+
+            {/* BOTTOM — question text full width */}
+            <div className="glass-input rounded-xl border border-white/20 p-5">
+              <div className="text-xs text-gray-400 mb-2">
+                Question {istate.questionIndex + 1}
+                {currentQ && ` · ${currentQ.type.replace("_", " ")}`}
+              </div>
+              {currentQ ? (
+                <p className="text-amber-100 text-base leading-relaxed">{currentQ.question}</p>
+              ) : (
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <ThinkingIndicator /> Preparing question...
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 

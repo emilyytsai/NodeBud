@@ -14,11 +14,11 @@ export function ConfidenceGauges({ posture, eyeContact }: ConfidenceGaugesProps)
 
 function GaugeCard({ label, value }: { label: string; value: number }) {
   const color =
-    value >= 70 ? "text-green-600" : value >= 40 ? "text-yellow-600" : "text-red-600";
+    value >= 70 ? "text-green-400" : value >= 40 ? "text-yellow-400" : "text-red-400";
   return (
-    <div className="flex-1 rounded-lg border p-3 text-center">
+    <div className="flex-1 glass-input rounded-lg border border-white/20 p-3 text-center">
       <div className={`text-2xl font-bold tabular-nums ${color}`}>{value}%</div>
-      <div className="text-xs text-muted-foreground mt-1">{label}</div>
+      <div className="text-xs text-gray-400 mt-1">{label}</div>
     </div>
   );
 }

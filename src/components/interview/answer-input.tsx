@@ -48,7 +48,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
   return (
     <div className="space-y-3">
       <textarea
-        className="glass-input w-full rounded-xl border border-white/20 p-3 text-amber-100 placeholder:text-gray-500 resize-none min-h-[100px] focus:outline-none focus:border-amber-300/50"
+        className="glass-input w-full rounded-xl p-3 text-amber-100 placeholder:text-gray-500 resize-none min-h-[100px] focus:outline-none focus:border-amber-300/50"
         placeholder={micActive ? "Listening… speak your answer" : "Type your answer or use the mic"}
         value={transcript}
         onChange={(e) => setTranscript(e.target.value)}
