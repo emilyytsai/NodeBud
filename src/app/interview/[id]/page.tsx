@@ -15,6 +15,7 @@ import type { InterviewState } from "@/lib/interview-state";
 import type { ParsedJd } from "@/lib/schemas/parsed-jd";
 import type { PersonaId } from "@/lib/personas";
 import { PERSONAS } from "@/lib/personas";
+import type { DifficultyId } from "@/lib/difficulty";
 
 const TrackingLoop = dynamic(
   () => import("@/components/interview/tracking-loop"),
@@ -38,6 +39,7 @@ type SetupPayload = {
   persona: PersonaId;
   parsed: ParsedJd | null;
   questionCount?: number;
+  difficulty?: DifficultyId;
 };
 
 const INITIAL_STATE: InterviewState = {
@@ -118,6 +120,7 @@ export default function InterviewPage({
         persona: setup.persona,
         questionIndex,
         previousQuestions: questions.map(q => q.question),
+        difficulty: setup.difficulty,
       }),
     })
       .then(r => r.json())

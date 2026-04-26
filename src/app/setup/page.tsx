@@ -5,11 +5,13 @@ import Link from "next/link";
 import { JdTextarea } from "@/components/setup/jd-textarea";
 import { PersonaPicker } from "@/components/setup/persona-picker";
 import type { PersonaId } from "@/lib/personas";
+import { DIFFICULTIES, DEFAULT_DIFFICULTY, type DifficultyId } from "@/lib/difficulty";
 
 export default function SetupPage() {
   const [jdText, setJdText] = useState("");
   const [persona, setPersona] = useState<PersonaId | null>(null);
   const [questionCount, setQuestionCount] = useState(3);
+  const [difficulty, setDifficulty] = useState<DifficultyId>(DEFAULT_DIFFICULTY);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -17,8 +19,12 @@ export default function SetupPage() {
   useEffect(() => {
     const savedJd = sessionStorage.getItem("setup:jdText");
     const savedPersona = sessionStorage.getItem("setup:persona");
+    const savedDifficulty = sessionStorage.getItem("setup:difficulty");
     if (savedJd) setJdText(savedJd);
     if (savedPersona) setPersona(savedPersona as PersonaId);
+    if (savedDifficulty && savedDifficulty in DIFFICULTIES) {
+      setDifficulty(savedDifficulty as DifficultyId);
+    }
   }, []);
 
 
@@ -29,6 +35,10 @@ export default function SetupPage() {
   useEffect(() => {
     if (persona) sessionStorage.setItem("setup:persona", persona);
   }, [persona]);
+
+  useEffect(() => {
+    sessionStorage.setItem("setup:difficulty", difficulty);
+  }, [difficulty]);
 
   const canGenerate = jdText.length >= 50 && persona !== null && !loading;
 
@@ -48,7 +58,7 @@ export default function SetupPage() {
         const sessionId = `s_${Date.now()}`;
         sessionStorage.setItem(
           `session:${sessionId}:setup`,
-          JSON.stringify({ jdText, persona, parsed: data, questionCount })
+          JSON.stringify({ jdText, persona, parsed: data, questionCount, difficulty })
         );
         router.push(`/setup/review?session=${sessionId}`);
       }
@@ -101,6 +111,27 @@ export default function SetupPage() {
                 }`}
               >
                 {n}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm text-amber-100">Difficulty</label>
+          <div className="flex gap-2">
+            {(Object.values(DIFFICULTIES)).map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setDifficulty(d.id)}
+                disabled={loading}
+                className={`px-4 h-10 rounded-lg text-sm border transition-all duration-200 hover:-translate-y-1 ${
+                  difficulty === d.id
+                    ? "bg-amber-400/20 border-amber-400/80 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.2)]"
+                    : "border-white/30 text-gray-400 hover:border-white/60 hover:text-amber-100"
+                }`}
+              >
+                {d.label}
               </button>
             ))}
           </div>

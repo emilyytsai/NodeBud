@@ -6,11 +6,12 @@ import {
 import { NEXT_QUESTION_SYSTEM, NEXT_QUESTION_USER } from "@/lib/prompts/next-question";
 import fallbackQuestions from "@/lib/fallback-questions.json";
 import type { PersonaId } from "@/lib/personas";
+import { DIFFICULTIES, DEFAULT_DIFFICULTY, type DifficultyId } from "@/lib/difficulty";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { parsedJd, persona, questionIndex = 0, previousQuestions = [] } = body;
+    const { parsedJd, persona, questionIndex = 0, previousQuestions = [], difficulty } = body;
 
     if (!parsedJd || !persona) {
       return Response.json(
@@ -18,6 +19,11 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    const safeDifficulty: DifficultyId =
+      typeof difficulty === "string" && difficulty in DIFFICULTIES
+        ? (difficulty as DifficultyId)
+        : DEFAULT_DIFFICULTY;
 
     const fallback =
       fallbackQuestions[questionIndex % fallbackQuestions.length];
@@ -29,6 +35,7 @@ export async function POST(req: Request) {
         persona: persona as PersonaId,
         questionIndex,
         previousQuestions,
+        difficulty: safeDifficulty,
       }),
       InterviewQuestionSchema,
       {
