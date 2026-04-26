@@ -68,7 +68,7 @@ export default function InterviewPage({
   const speakGuardRef = useRef(-1);
   const scoreGuardRef = useRef(-1);
 
-  const { speak } = useTTS(setup?.persona ?? "encouraging_recruiter", ttsMode);
+  const { speak, stop } = useTTS(setup?.persona ?? "encouraging_recruiter", ttsMode);
 
   useEffect(() => {
     const saved = sessionStorage.getItem(`session:${sessionId}:setup`);
@@ -224,7 +224,7 @@ export default function InterviewPage({
         ) : (
           <div className="space-y-4">
 
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_225px] gap-4 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_220px] gap-4 items-end">
 
               <div className="space-y-3">
                 {cvDisabled ? (
@@ -244,10 +244,11 @@ export default function InterviewPage({
                     alt="Interviewer"
                     fill
                     className="object-contain"
+                    sizes="(max-width: 640px) 160px, 208px"
                   />
                 </div>
                 <p className="text-sm font-semibold text-amber-100 -mt-2">
-                  {persona?.label ?? "Interviewer"} - Interviewer
+                  {persona?.label ?? "Interviewer"}
                 </p>
                 <p className="text-xs text-gray-400">
                   {istate.status === "speaking_question" && (
@@ -257,6 +258,18 @@ export default function InterviewPage({
                   {istate.status === "scoring_answer" && "Thinking about your answer..."}
                   {istate.status === "loading_intro" && "Preparing next question..."}
                 </p>
+
+                {istate.status === "speaking_question" && (
+                  <button
+                    onClick={() => {
+                      stop();
+                      setIstate(s => ({ ...s, status: "awaiting_answer" }));
+                    }}
+                    className="text-xs text-gray-500 hover:text-amber-100 hover:-translate-y-1 transition underline"
+                  >
+                    Skip →
+                  </button>
+                )}
 
                 <div className="w-full">
                   {istate.status === "awaiting_answer" && (
@@ -273,8 +286,7 @@ export default function InterviewPage({
               </div>
             </div>
 
-            {/* BOTTOM — question text full width */}
-            <div className="glass-input rounded-xl border border-white/20 p-5">
+            <div className="question-panel p-5" style={{ border: '1px solid rgba(255, 255, 255, 0.6)' }}>
               <div className="text-xs text-gray-400 mb-2">
                 Question {istate.questionIndex + 1}
                 {currentQ && ` · ${currentQ.type.replace("_", " ")}`}
