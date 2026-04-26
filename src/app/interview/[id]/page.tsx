@@ -10,6 +10,7 @@ import { AnswerInput } from "@/components/interview/answer-input";
 import { ThinkingIndicator } from "@/components/interview/thinking-indicator";
 import { useTTS } from "@/components/interview/audio-player";
 import { QuestionStats } from "@/lib/scoring/question-stats";
+import type { VerbalStatsResult } from "@/lib/scoring/verbal-stats";
 import type { InterviewState } from "@/lib/interview-state";
 import type { ParsedJd } from "@/lib/schemas/parsed-jd";
 import type { PersonaId } from "@/lib/personas";
@@ -23,12 +24,13 @@ const TrackingLoop = dynamic(
 const MAX_QUESTIONS = 5;
 
 const SCORE_FALLBACK = {
-  scores: { content_relevance: 5, technical_accuracy: 5, structure: 5, specificity: 5, communication: 5 },
+  scores: { content_relevance: 5, technical_accuracy: 5, structure: 5, specificity: 5, communication: 5, verbal_delivery: 5 },
   overall: 50,
   strengths: ["You completed the question."],
   improvements: ["Try to give a more specific example next time."],
   weak_competencies: [],
   non_verbal_feedback: null,
+  verbal_feedback: null,
   memory_writeback: null,
 };
 
@@ -64,6 +66,8 @@ export default function InterviewPage({
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const questionStatsRef = useRef(new QuestionStats());
+  const verbalStatsListRef = useRef<(VerbalStatsResult | null)[]>([]);
+  const pendingVerbalStatsRef = useRef<VerbalStatsResult | null>(null);
   const fetchGuardRef = useRef(-1);
   const speakGuardRef = useRef(-1);
   const scoreGuardRef = useRef(-1);
@@ -144,6 +148,7 @@ export default function InterviewPage({
     const currentQ = questions[questionIndex];
     const transcript = answers[questionIndex] ?? "";
     const stats = cvDisabled ? null : questionStatsRef.current.finalize();
+    const verbalStats = pendingVerbalStatsRef.current;
 
     fetch("/api/score-answer", {
       method: "POST",
@@ -153,6 +158,7 @@ export default function InterviewPage({
         targets: currentQ?.targets ?? [],
         transcript,
         stats,
+        verbalStats,
         roleTitle: setup?.parsed?.role_title ?? "Software Engineer",
         seniority: setup?.parsed?.seniority ?? "mid",
         accessibilityMode: cvDisabled,
@@ -163,6 +169,8 @@ export default function InterviewPage({
       .then(score => {
         const nextIndex = questionIndex + 1;
         questionStatsRef.current.reset();
+        verbalStatsListRef.current = [...verbalStatsListRef.current, verbalStats];
+        pendingVerbalStatsRef.current = null;
         setIstate(s => {
           const newScores = [...s.scores, score];
           return nextIndex < MAX_QUESTIONS
@@ -184,7 +192,8 @@ export default function InterviewPage({
     };
   }, [stop]);
 
-  const handleAnswerSubmit = useCallback((transcript: string) => {
+  const handleAnswerSubmit = useCallback((transcript: string, verbalStats: VerbalStatsResult) => {
+    pendingVerbalStatsRef.current = verbalStats;
     setIstate(s => ({ ...s, answers: [...s.answers, transcript], status: "scoring_answer" }));
   }, []);
 
@@ -219,6 +228,7 @@ export default function InterviewPage({
             questions={istate.questions}
             answers={istate.answers}
             scores={istate.scores}
+            verbalStatsList={verbalStatsListRef.current}
             roleTitle={setup?.parsed?.role_title ?? "Software Engineer"}
             persona={setup?.persona ?? "encouraging_recruiter"}
           />
