@@ -2,11 +2,16 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY ?? "");
 
-export const GEMMA_MODEL = process.env.GEMMA_MODEL_NAME ?? "gemma-2-9b-it";
+// Primary model for question generation + scoring (the AI showcase features).
+export const GEMMA_MODEL = process.env.GEMMA_MODEL_NAME ?? "gemma-4-26b-a4b-it";
 
-export function getGemmaModel(opts: { responseSchema?: object } = {}) {
+// Fast model for structured extraction tasks (JD parsing). Gemini Flash
+// reliably honours responseMimeType; Gemma 4 MoE does not.
+export const FLASH_MODEL = process.env.FLASH_MODEL_NAME ?? "gemini-2.0-flash-lite";
+
+export function getGemmaModel(opts: { model?: string; responseSchema?: object } = {}) {
   return genAI.getGenerativeModel({
-    model: GEMMA_MODEL,
+    model: opts.model ?? GEMMA_MODEL,
     generationConfig: {
       responseMimeType: "application/json",
       ...(opts.responseSchema ? { responseSchema: opts.responseSchema as never } : {}),
