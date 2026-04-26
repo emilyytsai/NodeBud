@@ -21,7 +21,6 @@ const TrackingLoop = dynamic(
   { ssr: false }
 );
 
-const MAX_QUESTIONS = 5;
 
 const SCORE_FALLBACK = {
   scores: { content_relevance: 5, technical_accuracy: 5, structure: 5, specificity: 5, communication: 5, verbal_delivery: 5 },
@@ -38,6 +37,7 @@ type SetupPayload = {
   jdText: string;
   persona: PersonaId;
   parsed: ParsedJd | null;
+  questionCount?: number;
 };
 
 const INITIAL_STATE: InterviewState = {
@@ -173,7 +173,7 @@ export default function InterviewPage({
         pendingVerbalStatsRef.current = null;
         setIstate(s => {
           const newScores = [...s.scores, score];
-          return nextIndex < MAX_QUESTIONS
+          return nextIndex < (setup?.questionCount ?? 3)
             ? { ...s, scores: newScores, questionIndex: nextIndex, status: "loading_intro" }
             : { ...s, scores: newScores, status: "show_report" };
         });
@@ -315,7 +315,7 @@ export default function InterviewPage({
 
             <div className="question-panel p-5" style={{ border: '1px solid rgba(255, 255, 255, 0.6)' }}>
               <div className="text-xs text-gray-400 mb-2">
-                Question {istate.questionIndex + 1}
+                Question {istate.questionIndex + 1} of {setup?.questionCount ?? 3}
                 {currentQ && ` · ${currentQ.type.replace("_", " ")}`}
               </div>
               {currentQ ? (

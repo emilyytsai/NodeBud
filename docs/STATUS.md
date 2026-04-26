@@ -1,6 +1,6 @@
 # Build Status
 
-**Last updated:** 2026-04-26 — handoff after Phase 4 (Brian's session)
+**Last updated:** 2026-04-26 — handoff after Phase 4 additions (Samson's session)
 **Read order for a fresh Claude Code:** `CLAUDE.md` → this file → `docs/PLAN.md` → (drill into `docs/PRD.md` / `docs/MVP-SPEC.md` as needed)
 
 ## ✅ What's done — Phase 0: Scaffold hardening
@@ -123,6 +123,28 @@ Initial voice IDs were copied from the ElevenLabs Voice Library — these are `c
 **Edge runtime `console.warn` doesn't surface in dev terminal.**
 Workaround: include diagnostic info in the HTTP response body so it's visible in DevTools → Network → Response. The TTS route now does both (warn + body) so either approach works depending on environment.
 
+## ✅ What's done — Phase 4.5: Verbal delivery metrics
+
+Verbal delivery metrics are fully wired end-to-end. Filler word detection, speaking pace (WPM), long pauses, and acoustic hesitation are collected client-side and fed to Gemma as a new scoring dimension. Results surface in the score report.
+
+### Files created in Phase 4.5
+
+- `src/lib/scoring/verbal-stats.ts` — `VerbalStats` class: `addInterimResult()` scans each interim Speech API result for filler words (um, uh, like, you know, basically, right, so) without double-counting; `sampleAudio(analyser)` detects long pauses (>2s, grace period 500ms) and acoustic hesitations (short RMS bursts 0.1–0.8s with no new transcript); `finalize(transcript)` computes WPM (0 if <5s duration); `reset()` for per-question reuse. Exports `VerbalStatsResult` type.
+
+### Files modified in Phase 4.5
+
+- `src/components/interview/answer-input.tsx` — instantiates `VerbalStats`; `startAudio()` creates `AudioContext` + `AnalyserNode` when mic starts and runs a 10fps rAF loop calling `sampleAudio`; `addInterimResult` called on every interim Speech API callback; `handleSubmit` calls `finalize()` (or returns `null` if mic was never used); `onSubmit` signature updated to `(transcript, verbalStats: VerbalStatsResult | null)`. Cleanup tears down `AudioContext` and cancels rAF on unmount/stop.
+- `src/lib/schemas/scored-answer.ts` — added `verbal_delivery` to `scores` object; added `verbal_feedback: z.string().nullish().catch(null)` top-level field.
+- `src/lib/prompts/score-answer.ts` — added `verbalStats` to `ScoreContext` type; renders verbal delivery block (filler count, acoustic hesitations, WPM, long pauses) in `SCORE_ANSWER_USER`; added `verbal_delivery` rubric (9-10 fluent, 6-8 minor issues, 3-5 noticeable, 1-2 heavy); `verbal_feedback` instruction in JSON spec.
+- `src/app/api/score-answer/route.ts` — `SCORE_FALLBACK` updated with `verbal_delivery: 5` and `verbal_feedback: null`.
+- `src/components/interview/score-report.tsx` — added `verbalStatsList` prop; "Verbal delivery" section renders after "Body language" when `score.verbal_feedback` is non-null: raw stats row (filler count + words, hesitations, WPM, pause count) in `text-xs text-gray-500`, Gemma feedback sentence in `text-xs text-gray-400 italic`, label in `text-xs font-semibold text-purple-400`.
+- `src/app/interview/[id]/page.tsx` — already had `verbalStats` / `pendingVerbalStatsRef` / `verbalStatsListRef` wired from Phase 3; updated `handleAnswerSubmit` signature to accept `VerbalStatsResult | null`; passes `verbalStatsList` to `<ScoreReport>`.
+
+### Design docs created in Phase 4.5
+
+- `docs/superpowers/specs/2026-04-26-verbal-delivery-metrics-design.md` — full design spec (approved before implementation).
+- `docs/superpowers/plans/2026-04-26-verbal-delivery-metrics.md` — implementation plan.
+
 ## ▶️ What's next — Phase 4.5 (gated) OR Phase 5 (submission)
 
 **Phase 4.5 (Backboard) is gated.** Per `docs/PLAN.md` § Phase 4.5, only proceed if at hour 18 ALL of:
@@ -137,12 +159,11 @@ If any are false, **skip to Phase 5**.
 
 **Phase 5 (Devpost + demo video):** see `docs/MVP-SPEC.md` § Phase 5. Critical: writeup MUST say **"Gemma 4 via the Google Gemini API"** verbatim (Tier 1 prize criterion). Record a backup video Sunday morning.
 
-## Branch / env state (2026-04-26, end of Phase 4 session)
+## Branch / env state (2026-04-26, end of Phase 4.5 session)
 
-- Brian on branch `brian`. Phase 4 work staged for commit (see commit message in handoff).
-- `npm run build` passes cleanly.
-- `recharts` added to dependencies.
-- `.env.local` working: ElevenLabs voice plays for all three personas using `premade` voice IDs (Sarah/Daniel/Will at the time of writing).
+- Samson on branch `sam`. Phase 4.5 verbal delivery metrics committed.
+- `npm run build` passes cleanly (no new dependencies added — Web Audio API and AudioContext are browser built-ins).
+- `.env.local` working: ElevenLabs voice plays for all three personas using `premade` voice IDs.
 - `.env.local.example` no longer leaks any keys.
 
 ## ⚠️ Outstanding before next session
