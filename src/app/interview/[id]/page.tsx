@@ -172,6 +172,12 @@ export default function InterviewPage({
       });
   }, [istate.status, istate.questionIndex, cvDisabled, setup]);
 
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
   const handleAnswerSubmit = useCallback((transcript: string) => {
     setIstate(s => ({ ...s, answers: [...s.answers, transcript], status: "scoring_answer" }));
   }, []);
@@ -179,24 +185,6 @@ export default function InterviewPage({
   const handleStreamGranted = useCallback((s: MediaStream) => setStream(s), []);
   const persona = setup ? PERSONAS[setup.persona] : null;
   const currentQ = istate.questions[istate.questionIndex];
-
-  const UserCamera = () => (
-    <div className="relative rounded-xl overflow-hidden glass-input border border-white/20 aspect-video w-full">
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className="w-full h-full object-cover"
-      />
-      <TrackingLoop
-        videoRef={videoRef}
-        questionStats={questionStatsRef.current}
-        onPostureChange={setPosture}
-        onEyeContactChange={setEyeContact}
-      />
-    </div>
-  );
 
   return (
     <main className="relative min-h-screen overflow-hidden">
@@ -224,7 +212,7 @@ export default function InterviewPage({
         ) : (
           <div className="space-y-4">
 
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_220px] gap-4 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-4 items-end">
 
               <div className="space-y-3">
                 {cvDisabled ? (
@@ -232,19 +220,33 @@ export default function InterviewPage({
                     CV mode off
                   </div>
                 ) : (
-                  <UserCamera />
+                  <div className="relative rounded-xl overflow-hidden glass-input border border-white/20 aspect-video w-full">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover scale-x-[-1]"
+                    />
+                    <TrackingLoop
+                      videoRef={videoRef}
+                      questionStats={questionStatsRef.current}
+                      onPostureChange={setPosture}
+                      onEyeContactChange={setEyeContact}
+                    />
+                  </div>
                 )}
                 <ConfidenceGauges posture={posture} eyeContact={eyeContact} />
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                <div className="relative w-40 h-40 sm:w-52 sm:h-52 shrink-0">
+                <div className="relative w-36 h-36 sm:w-44 sm:h-44 shrink-0">
                   <Image
                     src="/interviewer.png"
                     alt="Interviewer"
                     fill
                     className="object-contain"
-                    sizes="(max-width: 640px) 160px, 208px"
+                    sizes="(max-width: 640px) 144px, 176px"
                   />
                 </div>
                 <p className="text-sm font-semibold text-amber-100 -mt-2">
