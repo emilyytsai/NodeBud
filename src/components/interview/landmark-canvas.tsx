@@ -2,6 +2,26 @@
 import { useEffect, useRef, type RefObject } from "react";
 import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 
+// How much to blend toward each new frame's position.
+// Lower = smoother but more lag. 0.3 removes jitter while staying responsive.
+const SMOOTH_ALPHA = 0.3;
+
+type Point = { x: number; y: number };
+
+function emaSmooth(
+  incoming: NormalizedLandmark[] | null,
+  prev: Point[] | null,
+): Point[] | null {
+  if (!incoming || incoming.length === 0) return null;
+  if (!prev || prev.length !== incoming.length) {
+    return incoming.map(l => ({ x: l.x, y: l.y }));
+  }
+  return incoming.map((lm, i) => ({
+    x: SMOOTH_ALPHA * lm.x + (1 - SMOOTH_ALPHA) * prev[i].x,
+    y: SMOOTH_ALPHA * lm.y + (1 - SMOOTH_ALPHA) * prev[i].y,
+  }));
+}
+
 // Upper-body pose landmarks we care about
 const POSE_INDICES = [0, 11, 12, 13, 14, 15, 16, 23, 24];
 const POSE_CONNECTIONS: [number, number][] = [
@@ -37,6 +57,8 @@ interface LandmarkCanvasProps {
 
 export function LandmarkCanvas({ show, videoRef, landmarks }: LandmarkCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const smoothedPose = useRef<Point[] | null>(null);
+  const smoothedFace = useRef<Point[] | null>(null);
 
   // Keep canvas dimensions in sync with video rendered size
   useEffect(() => {
@@ -65,15 +87,20 @@ export function LandmarkCanvas({ show, videoRef, landmarks }: LandmarkCanvasProp
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (!show) return;
 
+    // Smooth landmark positions to reduce per-frame jitter
+    smoothedPose.current = emaSmooth(landmarks.pose, smoothedPose.current);
+    smoothedFace.current = emaSmooth(landmarks.face, smoothedFace.current);
+
     const { width, height } = canvas;
-    const { pose, face } = landmarks;
+    const pose = smoothedPose.current;
+    const face = smoothedFace.current;
 
     // Flip x to match the CSS scale-x-[-1] on the <video>
-    const px = (lm: NormalizedLandmark) => (1 - lm.x) * width;
-    const py = (lm: NormalizedLandmark) => lm.y * height;
+    const px = (lm: Point) => (1 - lm.x) * width;
+    const py = (lm: Point) => lm.y * height;
 
     // --- Pose: upper body skeleton ---
-    if (pose && pose.length >= 25) {
+    if (pose && pose.length >= 25) { // pose is Point[] after smoothing
       ctx.strokeStyle = "rgba(255,255,255,0.6)";
       ctx.lineWidth = 2;
       for (const [a, b] of POSE_CONNECTIONS) {
@@ -97,7 +124,7 @@ export function LandmarkCanvas({ show, videoRef, landmarks }: LandmarkCanvasProp
     }
 
     // --- Face: eye corners + iris centers only ---
-    if (face && face.length >= 478) {
+    if (face && face.length >= 478) { // face is Point[] after smoothing
       // Eye corner connecting lines
       ctx.strokeStyle = "rgba(0,220,255,0.7)";
       ctx.lineWidth = 1.5;

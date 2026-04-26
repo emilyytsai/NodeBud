@@ -257,7 +257,6 @@ export default function InterviewPage({
             <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-4 items-end">
 
               <div className="space-y-3">
-                {!cvDisabled && <CalibrationBanner status={calibrationStatus} />}
                 {cvDisabled ? (
                   <div className="glass-input rounded-xl border border-white/20 p-6 text-center text-gray-400 text-sm aspect-video flex items-center justify-center">
                     CV mode off
@@ -272,6 +271,12 @@ export default function InterviewPage({
                       className="w-full h-full object-cover scale-x-[-1]"
                     />
                     <LandmarkCanvas show={showOverlay} videoRef={videoRef} landmarks={landmarks} />
+                    {/* Banner overlaid inside the video — no layout shift */}
+                    {calibrationStatus !== "ok" && (
+                      <div className="absolute top-2 left-2 right-2 z-10">
+                        <CalibrationBanner status={calibrationStatus} />
+                      </div>
+                    )}
                     <TrackingLoop
                       videoRef={videoRef}
                       questionStats={questionStatsRef.current}
