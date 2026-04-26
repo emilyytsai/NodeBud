@@ -13,27 +13,32 @@ export function PermissionsGate({ onGranted }: { onGranted: (s: MediaStream) => 
       onGranted(stream);
     } catch {
       setError(
-        "Camera/mic access denied. You can still type your answers — click 'Skip CV' below."
+        "Camera/mic access denied. You can still type your answers - click Skip CV below."
       );
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-8">
-      <h2 className="text-2xl font-semibold">Ready your camera</h2>
-      <p className="max-w-md text-center text-sm text-muted-foreground">
-        We use your webcam in-browser to score your posture and eye contact. Nothing is
-        uploaded or recorded.
-      </p>
-      <button
-        onClick={requestAccess}
-        className="rounded-md bg-black px-6 py-3 text-white hover:bg-gray-800"
-      >
-        Enable camera and mic
-      </button>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <a href="?cv=off" className="text-sm underline text-muted-foreground">
-        Skip CV — type my answers instead
+    <div className="flex flex-col items-center gap-6 p-8">
+    <h2 className="text-2xl font-bold text-amber-100">Ready your camera</h2>
+    <p className="max-w-md text-center text-sm text-gray-300">
+      We use your webcam in-browser to score your posture and eye contact. Nothing is
+      uploaded or recorded.
+    </p>
+      <div className="btn-wrapper">
+        <button onClick={requestAccess} className="btn-primary">
+          Enable camera and mic
+        </button>
+      </div>
+
+      {error && (
+        <p className="text-sm text-red-300 rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3 text-center max-w-md">
+          {error}
+        </p>
+      )}
+
+      <a href="?cv=off" className="text-sm text-gray-400 hover:text-amber-100 hover:-translate-y-1 transition underline">
+        Skip CV - type my answers instead
       </a>
     </div>
   );
