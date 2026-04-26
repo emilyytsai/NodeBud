@@ -66,7 +66,7 @@ export async function callGemmaJSON<T>(
         ],
         // Must repeat responseMimeType here — generateContent config merges
         // inconsistently across SDK versions and can drop the model-level setting.
-        generationConfig: { temperature, responseMimeType: "application/json" },
+        generationConfig: { temperature },
       });
 
       const raw = extractJSON(result.response.text());
