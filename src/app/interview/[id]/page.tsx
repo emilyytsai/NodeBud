@@ -228,6 +228,7 @@ export default function InterviewPage({
             questions={istate.questions}
             answers={istate.answers}
             scores={istate.scores}
+            verbalStatsList={verbalStatsListRef.current}
             roleTitle={setup?.parsed?.role_title ?? "Software Engineer"}
             persona={setup?.persona ?? "encouraging_recruiter"}
           />
