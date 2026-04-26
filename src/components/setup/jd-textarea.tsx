@@ -11,7 +11,9 @@ interface JdTextareaProps {
 export function JdTextarea({ value, onChange, disabled }: JdTextareaProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="jd-input">Paste the job description</Label>
+      <Label htmlFor="jd-input" className={disabled ? "opacity-40" : ""}>
+        Paste the job description
+      </Label>
       <Textarea
         id="jd-input"
         placeholder="Paste the full job description here..."
@@ -20,7 +22,9 @@ export function JdTextarea({ value, onChange, disabled }: JdTextareaProps) {
         disabled={disabled}
         className="min-h-[200px] resize-y glass-input"
       />
-      <p className="text-xs text-muted-foreground">{value.length} characters</p>
+      <p className={`text-xs text-muted-foreground ${disabled ? "opacity-40" : ""}`}>
+        {value.length} characters
+      </p>
     </div>
   );
 }

@@ -10,11 +10,13 @@ import type { PersonaId } from "@/lib/personas";
 
 export default function SetupPage() {
   const [jdText, setJdText] = useState("");
-  const [persona, setPersona] = useState<PersonaId>("encouraging_recruiter");
+  const [persona, setPersona] = useState<PersonaId | null>(null);
   const [loading, setLoading] = useState(false);
   const [parsed, setParsed] = useState<ParsedJd | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  const canGenerate = jdText.length >= 50 && persona !== null && !loading;
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -48,25 +50,32 @@ export default function SetupPage() {
     router.push(`/interview/${sessionId}`);
   };
 
-  return (
+return (
     <main className="relative min-h-screen overflow-hidden">
-      <Link
-        href="/"
-        className="absolute top-6 left-6 z-20 text-amber-100 hover:text-white hover:-translate-y-1  transition"
-      >
-        ← &nbsp;Back
-      </Link>
 
-      <div className="relative mx-auto max-w-2xl px-4 py-12 space-y-8 -mt-8">
+      <div className="relative mx-auto max-w-2xl px-4 pt-6 pb-12 space-y-8">
+        
+        <Link
+          href="/"
+          className="inline-block text-amber-100 hover:text-white hover:-translate-y-1 transition z-20"
+        >
+          ← &nbsp;Back
+        </Link>
+
         <div>
-          <h1 className="setup-title">Set up your interview</h1>
+          <h1 className="setup-title -mt-5">Set up your interview</h1>
           <p className="mt-2 text-amber-100">
             Paste a job description and pick your interviewer. We&apos;ll tailor the questions to the role.
           </p>
         </div>
 
         <JdTextarea value={jdText} onChange={setJdText} disabled={loading} />
-        <PersonaPicker value={persona} onChange={setPersona} disabled={loading} />
+
+        <PersonaPicker
+          value={persona}
+          onChange={setPersona}
+          disabled={loading || jdText.length < 50}
+        />
 
         {error && (
           <p className="text-sm text-red-300 rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3">
@@ -77,7 +86,7 @@ export default function SetupPage() {
         <div className="btn-wrapper">
           <button
             onClick={handleGenerate}
-            disabled={loading || jdText.length < 50}
+            disabled={!canGenerate}
             className="btn-primary disabled:cursor-not-allowed"
           >
             {loading ? "Parsing job description…" : "Generate questions"}
