@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { JdTextarea } from "@/components/setup/jd-textarea";
 import { PersonaPicker } from "@/components/setup/persona-picker";
 import { ParsedCompetencies } from "@/components/setup/parsed-competencies";
@@ -49,40 +49,52 @@ export default function SetupPage() {
   };
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Set up your interview</h1>
-        <p className="mt-1 text-muted-foreground">
-          Paste a job description and pick your interviewer. We&apos;ll tailor the questions to the role.
-        </p>
-      </div>
-
-      <JdTextarea value={jdText} onChange={setJdText} disabled={loading} />
-
-      <PersonaPicker value={persona} onChange={setPersona} disabled={loading} />
-
-      {error && (
-        <p className="text-sm text-red-600 rounded-md border border-red-200 bg-red-50 px-4 py-3">
-          {error}
-        </p>
-      )}
-
-      <Button
-        onClick={handleGenerate}
-        disabled={loading || jdText.length < 50}
-        className="w-full"
+    <main className="relative min-h-screen overflow-hidden">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 z-20 text-amber-100 hover:text-white hover:-translate-y-1  transition"
       >
-        {loading ? "Parsing job description…" : "Generate questions"}
-      </Button>
+        ← &nbsp;Back
+      </Link>
 
-      {parsed && (
-        <div className="space-y-4">
-          <ParsedCompetencies parsed={parsed} />
-          <Button onClick={handleStartInterview} className="w-full" variant="default">
-            Start interview →
-          </Button>
+      <div className="relative mx-auto max-w-2xl px-4 py-12 space-y-8 -mt-8">
+        <div>
+          <h1 className="setup-title">Set up your interview</h1>
+          <p className="mt-2 text-amber-100">
+            Paste a job description and pick your interviewer. We&apos;ll tailor the questions to the role.
+          </p>
         </div>
-      )}
+
+        <JdTextarea value={jdText} onChange={setJdText} disabled={loading} />
+        <PersonaPicker value={persona} onChange={setPersona} disabled={loading} />
+
+        {error && (
+          <p className="text-sm text-red-300 rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3">
+            {error}
+          </p>
+        )}
+
+        <div className="btn-wrapper">
+          <button
+            onClick={handleGenerate}
+            disabled={loading || jdText.length < 50}
+            className="btn-primary disabled:cursor-not-allowed"
+          >
+            {loading ? "Parsing job description…" : "Generate questions"}
+          </button>
+        </div>
+
+        {parsed && (
+          <div className="space-y-4">
+            <ParsedCompetencies parsed={parsed} />
+            <div className="btn-wrapper">
+              <button onClick={handleStartInterview} className="btn-primary">
+                Start interview →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
