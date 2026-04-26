@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 function speakBrowser(text: string, onEnd?: () => void) {
   if (typeof window === "undefined" || !window.speechSynthesis) { onEnd?.(); return; }
@@ -12,6 +12,19 @@ function speakBrowser(text: string, onEnd?: () => void) {
 
 export function useTTS(persona: string, mode: "elevenlabs" | "browser") {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stop = useCallback(() => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+    setIsSpeaking(false);
+  }, []);
 
   const speak = useCallback(
     async (text: string, onEnd?: () => void) => {
@@ -33,7 +46,8 @@ export function useTTS(persona: string, mode: "elevenlabs" | "browser") {
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
-        audio.onended = () => { done(); URL.revokeObjectURL(url); };
+        audioRef.current = audio;
+        audio.onended = () => { done(); URL.revokeObjectURL(url); audioRef.current = null; };
         audio.onerror = () => speakBrowser(text, done);
         await audio.play();
       } catch {
@@ -43,5 +57,5 @@ export function useTTS(persona: string, mode: "elevenlabs" | "browser") {
     [persona, mode]
   );
 
-  return { speak, isSpeaking };
+  return { speak, isSpeaking, stop };
 }
