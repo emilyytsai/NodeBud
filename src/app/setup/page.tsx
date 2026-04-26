@@ -10,11 +10,13 @@ import type { PersonaId } from "@/lib/personas";
 
 export default function SetupPage() {
   const [jdText, setJdText] = useState("");
-  const [persona, setPersona] = useState<PersonaId>("encouraging_recruiter");
+  const [persona, setPersona] = useState<PersonaId | null>(null);
   const [loading, setLoading] = useState(false);
   const [parsed, setParsed] = useState<ParsedJd | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  const canGenerate = jdText.length >= 50 && persona !== null && !loading;
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -52,7 +54,7 @@ export default function SetupPage() {
     <main className="relative min-h-screen overflow-hidden">
       <Link
         href="/"
-        className="absolute top-6 left-6 z-20 text-amber-100 hover:text-white hover:-translate-y-1  transition"
+        className="absolute top-6 left-6 z-20 text-amber-100 hover:text-white hover:-translate-y-1 transition"
       >
         ← &nbsp;Back
       </Link>
@@ -66,7 +68,12 @@ export default function SetupPage() {
         </div>
 
         <JdTextarea value={jdText} onChange={setJdText} disabled={loading} />
-        <PersonaPicker value={persona} onChange={setPersona} disabled={loading} />
+
+        <PersonaPicker
+          value={persona}
+          onChange={setPersona}
+          disabled={loading || jdText.length < 50}
+        />
 
         {error && (
           <p className="text-sm text-red-300 rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3">
@@ -77,7 +84,7 @@ export default function SetupPage() {
         <div className="btn-wrapper">
           <button
             onClick={handleGenerate}
-            disabled={loading || jdText.length < 50}
+            disabled={!canGenerate}
             className="btn-primary disabled:cursor-not-allowed"
           >
             {loading ? "Parsing job description…" : "Generate questions"}

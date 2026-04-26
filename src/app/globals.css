@@ -128,6 +128,15 @@ body {
   transform-origin: center;
 }
 
+.btn-wrapper:has(button:disabled)::before {
+  display: none;
+}
+
+.btn-wrapper:has(button:disabled) {
+  padding: 0;
+  pointer-events: none;
+}
+
 .btn-primary {
   display: block;
   border-radius: 999px;
