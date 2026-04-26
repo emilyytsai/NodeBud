@@ -7,12 +7,14 @@ export const ScoredAnswerSchema = z.object({
     structure: z.number(),
     specificity: z.number(),
     communication: z.number(),
+    verbal_delivery: z.number(),
   }),
   overall: z.number(),
   strengths: z.array(z.string()),
   improvements: z.array(z.string()),
   weak_competencies: z.array(z.string()),
   non_verbal_feedback: z.string().nullable(),
+  verbal_feedback: z.string().nullable(),
   memory_writeback: z
     .object({
       competency: z.string(),
@@ -35,6 +37,7 @@ export const SCORED_ANSWER_RESPONSE_SCHEMA = {
         structure: { type: "number" },
         specificity: { type: "number" },
         communication: { type: "number" },
+        verbal_delivery: { type: "number" },
       },
       required: [
         "content_relevance",
@@ -42,6 +45,7 @@ export const SCORED_ANSWER_RESPONSE_SCHEMA = {
         "structure",
         "specificity",
         "communication",
+        "verbal_delivery",
       ],
     },
     overall: { type: "number" },
@@ -49,6 +53,7 @@ export const SCORED_ANSWER_RESPONSE_SCHEMA = {
     improvements: { type: "array", items: { type: "string" } },
     weak_competencies: { type: "array", items: { type: "string" } },
     non_verbal_feedback: { type: "string", nullable: true },
+    verbal_feedback: { type: "string", nullable: true },
     memory_writeback: {
       type: "object",
       nullable: true,
