@@ -33,11 +33,11 @@ export async function callGemmaJSON<T>(
             parts: [{ text: `${systemPrompt}\n\n${userPrompt}${stricterSuffix}` }],
           },
         ],
-        generationConfig: { temperature },
+        generationConfig: { temperature, responseMimeType: "application/json" },
       });
 
       const raw = result.response.text();
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(extractJSON(raw));
       return schema.parse(parsed);
     } catch (e) {
       lastError = e;
@@ -52,4 +52,11 @@ export async function callGemmaJSON<T>(
     }
   }
   throw new Error("unreachable");
+}
+
+function extractJSON(raw: string): string {
+  const trimmed = raw.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  if (fenced) return fenced[1].trim();
+  return trimmed;
 }

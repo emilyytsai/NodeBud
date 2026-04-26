@@ -53,12 +53,16 @@ These break in non-obvious ways:
 - **`extractJSON` strips markdown fences.** Even with `responseMimeType` set, Gemma sometimes wraps output in ` ```json...``` `. The `extractJSON()` helper in `llm-call.ts` handles this before `JSON.parse`.
 - **React 19 `useRef` type change.** `useRef<HTMLVideoElement>(null)` now returns `RefObject<HTMLVideoElement | null>`, not `RefObject<HTMLVideoElement>`. Component props that accept a video ref must be typed `RefObject<HTMLVideoElement | null>`.
 - **Turbopack + Windows paths with spaces.** Turbopack (Next.js default bundler) crashes when the project path contains spaces (e.g., `C:\Users\Samson Du\`). The `package.json` dev script already has `--webpack` to work around this. Do not remove it.
-- **Gemma 4 31B is slow.** `gemma-4-31b-it` takes 20–30s for JD parsing, well over the 8s target. Use a smaller Gemma 4 variant from AI Studio (check the model picker for `gemma-4-*`) for dev and consider it for prod too.
+- **Gemma 4 31B is slow.** `gemma-4-31b-it` takes 20–30s for JD parsing, well over the 8s target. The code default is `gemma-4-26b-a4b-it` (~5–8s). To list valid IDs at runtime: `curl "https://generativelanguage.googleapis.com/v1beta/models?key=$GOOGLE_AI_KEY"`.
+- **Transient 502s from Google's Gemini API are normal.** They surface as `[502 Bad Gateway]` from `generateContent`. Don't change the model name in response — `callGemmaJSON`'s fallback path is designed for this. Retry the request; if it persists, check `https://status.cloud.google.com`.
+- **Grammarly hydration warning.** The Grammarly browser extension injects `data-new-gr-c-s-check-loaded` and `data-gr-ext-installed` attributes on `<body>` after SSR, causing a React hydration mismatch warning. `src/app/layout.tsx` sets `suppressHydrationWarning` on `<body>` to silence it. Don't remove that prop.
 
 ## Conventions
 
 - Path alias: `@/*` → `./src/*`. Imports look like `@/lib/llm`, `@/components/ui/button`.
 - Package manager: **npm** (lockfile is `package-lock.json`).
-- Branch policy: each dev works on their own branch (`brian`, `sam`, etc.), main is `master`. Don't push to `master` without team confirmation.
-- LLM provider: **Gemma via the Google Gemini API** (`@google/generative-ai`). Don't substitute Ollama — it forfeits the prize and prevents Vercel deployment.
+- Branch policy: each dev works on their own branch (`brian`, `sam`, etc.), main is `master`. Don't push to `master` without team confirmation. **After any merge between dev branches, verify `src/lib/llm-call.ts` still has BOTH `responseMimeType: "application/json"` in the `generateContent` `generationConfig` AND the `extractJSON()` helper before `JSON.parse` — this fix has been silently dropped during merges before.**
+- Never paste real API keys into `.env.local.example` — it's git-tracked. Real keys go in `.env.local` (gitignored).
+- LLM provider: **Gemma via the Google Gemini API** (`@google/generative-ai`). Don't substitute Ollama — it forfeits the prize and prevents Vercel deployment. **Kaggle Gemma 4 weights are also out of scope** — that path is for self-hosting (vLLM/llama.cpp) and disqualifies us from the "Gemma via Gemini API" prize criterion.
+- Default Gemma model: `gemma-4-26b-a4b-it`. The 31B variant works but takes 20–30s per JD parse; stick with 26B for the demo.
 - Excluded by team agreement (do not introduce): Ollama, LangChain, Zustand, Auth0.

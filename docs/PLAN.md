@@ -153,7 +153,7 @@ NodeBud/
 
 **Pre-step (user must do):**
 1. Log into `aistudio.google.com`, generate API key → set `GOOGLE_AI_KEY` in `.env.local` and Vercel.
-2. Pick the latest Gemma model that supports `generateContent` (e.g., `gemma-2-9b-it` or whatever Gemma 4 variant is live) → set `GEMMA_MODEL_NAME`.
+2. Pick a Gemma 4 variant that supports `generateContent` — default `gemma-4-26b-a4b-it` (faster than 31B) → set `GEMMA_MODEL_NAME`. Do NOT use `gemma-2-*` (forfeits the Gemma 4 prize).
 
 **Files:**
 - Create: `src/lib/llm.ts`
@@ -168,7 +168,7 @@ NodeBud/
 - Create: `src/components/setup/jd-textarea.tsx`, `persona-picker.tsx`, `parsed-competencies.tsx`
 
 **Implementation notes (deltas from spec):**
-- Spec uses `process.env.GEMMA_MODEL_NAME ?? "gemma-2-9b-it"`. Keep that fallback string. Default is already in `.env.local.example`.
+- Spec uses `process.env.GEMMA_MODEL_NAME ?? "gemma-4-26b-a4b-it"`. Default is already in `.env.local.example`.
 - `callGemmaJSON` helper from `docs/MVP-SPEC.md` §Phase 1 is verbatim correct — implement as-is. The `responseSchema` + retry-on-Zod-fail + fallback-on-second-fail pattern is the safety net.
 - Build `fallback-questions.json` (10 entries from spec) **before** the API route. This is the safety net for every later phase.
 - Setup page uses `useState` + `useRouter` (exactly per spec). Mirror to `sessionStorage` via `useEffect` so the interview page can rehydrate on refresh.

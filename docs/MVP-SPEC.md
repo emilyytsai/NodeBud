@@ -140,7 +140,7 @@ The Gemma 4 prize is our top target. If Gemma integration doesn't work, nothing 
 
 1. Log into `aistudio.google.com` with the team Google account
 2. Click "Get API key" → generate one → set as `GOOGLE_AI_KEY`
-3. Open the model picker. Find the latest **Gemma** model that supports `generateContent`. Common forms: `gemma-2-9b-it`, or whatever Gemma 4 variant Google has rolled out.
+3. Open the model picker. Find the latest **Gemma 4** variant that supports `generateContent`. Default for this build: `gemma-4-26b-a4b-it` (faster than 31B). Do NOT use `gemma-2-*` — that forfeits the Gemma 4 prize.
 4. Set `GEMMA_MODEL_NAME` to that exact string in `.env.local` AND in Vercel env vars.
 
 ### File checklist
@@ -178,8 +178,8 @@ if (!process.env.GOOGLE_AI_KEY) {
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY);
 
 // Set in .env.local from the AI Studio model picker.
-// Examples seen in the wild: "gemma-2-9b-it", "gemma-3-...", "gemma-4-..."
-export const GEMMA_MODEL = process.env.GEMMA_MODEL_NAME ?? "gemma-2-9b-it";
+// Current Gemma 4 IDs: "gemma-4-26b-a4b-it" (default, faster), "gemma-4-31b-it" (slower).
+export const GEMMA_MODEL = process.env.GEMMA_MODEL_NAME ?? "gemma-4-26b-a4b-it";
 
 export function getGemmaModel(opts: { responseSchema?: object } = {}) {
   return genAI.getGenerativeModel({

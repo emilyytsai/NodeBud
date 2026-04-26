@@ -1,7 +1,33 @@
 # Build Status
 
-**Last updated:** 2026-04-25 — handoff after Phase 2 (Samson's session)
+**Last updated:** 2026-04-25 — Brian's session, post-Phase-2-merge cleanup
 **Read order for a fresh Claude Code:** `CLAUDE.md` → this file → `docs/PLAN.md` → (drill into `docs/PRD.md` / `docs/MVP-SPEC.md` as needed)
+
+## 🛠️ Brian's session (2026-04-25, after Samson's Phase 2 merge to `brian`)
+
+This session was cleanup, not feature work. Phase 3 has not started yet.
+
+### What changed
+
+- **Gemma 4 model alignment.** Default model name was still `gemma-2-9b-it` in `src/lib/llm.ts:5` and `.env.local.example` (leftover from Phase 0). Forfeits the Gemma 4 prize on any clean checkout that doesn't override `GEMMA_MODEL_NAME`. Updated to `gemma-4-26b-a4b-it` everywhere (`src/lib/llm.ts`, `.env.local.example`, `CLAUDE.md`, `docs/MVP-SPEC.md`, `docs/PLAN.md`, `docs/STATUS.md`).
+- **Leaked API key in `.env.local.example`.** Committed file had a real `GOOGLE_AI_KEY=AIzaSy…` value (line 3). Brian revoked the key at https://aistudio.google.com/apikey, minted a new one, put it in `.env.local`. The `.example` is now scrubbed back to `your_key_here`. **Tell Samson to do the same on his machine** if his `.env.local` had the same key.
+- **`llm-call.ts` regression re-fixed.** The `responseMimeType: "application/json"` (in the `generateContent` `generationConfig`) and the `extractJSON()` helper were on Samson's `sam` branch but **missing from `brian`** — likely dropped during the Phase 1+2 merge. Symptom was identical to the original bug: `SyntaxError: Unexpected token 'T', "Technical "...` after an 82s prose-mode call. Both fixes re-applied. **Verify after every cross-branch merge.**
+- **Grammarly hydration warning.** `<body>` had no `suppressHydrationWarning`, so the Grammarly extension's injected attributes (`data-new-gr-c-s-check-loaded`, `data-gr-ext-installed`) caused a React hydration mismatch warning on every page load. Added `suppressHydrationWarning` to `<body>` in `src/app/layout.tsx`.
+- **MediaPipe install gap.** `@mediapipe/tasks-vision` was in `package.json` but not in `node_modules` on Brian's checkout. `npm install @mediapipe/tasks-vision` fixed it; build then went clean.
+
+### Verified live (Brian's machine, end of session)
+
+- `npm run build` → clean, all routes compile (`/`, `/setup`, `/interview/[id]`, `/api/health`, `/api/parse-jd`, `/api/next-question`)
+- Dev server up on `:3000` (`http://localhost:3000/api/health` → `{"ok":true}`)
+- `gemma-4-26b-a4b-it` returns HTTP 200 from the live Gemini API (verified via direct `curl`). Both Gemma 4 IDs (`-26b-a4b-it` and `-31b-it`) appear in the live `models?key=…` listing.
+- The 502 Bad Gateway Brian saw mid-session was a transient Google outage, not a config issue. The fallback path engaged correctly (designed behavior).
+
+### Pending (carry into next session)
+
+- Test the JD parse end-to-end on `/setup` after the `llm-call.ts` fix — should return real Gemma JSON in 5–8s, no fallback warning, no 82s prose timeout.
+- Phase 3 work hasn't started. See `## ▶️ What's next` below.
+
+---
 
 ## ✅ What's done — Phase 0: Scaffold hardening
 
@@ -50,7 +76,7 @@ Also added `extractJSON()` helper in `llm-call.ts` that strips markdown code blo
 
 ### Model speed warning
 
-`gemma-4-31b-it` is very slow (~20–30s for JD parsing). For dev speed use a smaller Gemma 4 variant from AI Studio. The `.env.local` file on Samson's machine has `GEMMA_MODEL_NAME=gemma-4-31b-it`.
+`gemma-4-31b-it` is very slow (~20–30s for JD parsing). The code default is now `gemma-4-26b-a4b-it` (faster, ~5–8s). Samson's machine still overrides to `gemma-4-31b-it` in his local `.env.local`; he should switch to 26B if 31B is still too slow at demo time. **Never fall back to `gemma-2-*`** — that forfeits the Gemma 4 prize.
 
 ## ✅ What's done — Phase 2: Webcam + MediaPipe heuristics bundle
 
@@ -123,18 +149,19 @@ Full plan: `docs/PLAN.md` § Phase 3. Detailed code: `docs/MVP-SPEC.md` § Phase
 - If `score-answer` Gemma call returns the fallback (flat 50 + generic text), that's expected behavior under load/quota. The loop must continue — never block on scoring.
 - ElevenLabs `ELEVENLABS_VOICE_*` env vars map to personas via `src/lib/personas.ts`. The `PersonaId` type is `"encouraging_recruiter" | "strict_tech_lead" | "friendly_peer"`.
 
-## Branch / env state (2026-04-25, end of Samson's session)
+## Branch / env state (2026-04-25, end of Brian's session)
 
-- Samson worked on branch `sam`. Phases 1 and 2 are committed there.
+- **Branches in play:** `brian` (this machine), `sam` (Samson's machine), `master` (untouched). Phase 1 + Phase 2 + this session's cleanup are all on `brian`. Samson's `sam` branch has its own state — coordinate before merging.
 - `npm run dev` uses `--webpack` (added to `package.json` to work around Turbopack path-with-spaces bug on Windows).
-- `.env.local` on Samson's machine has real `GOOGLE_AI_KEY`, `GEMMA_MODEL_NAME=gemma-4-31b-it`, real `ELEVENLABS_API_KEY`. The three `ELEVENLABS_VOICE_*` keys are still blank.
-- `npm run build` was passing as of Phase 2 completion (TypeScript clean).
+- `.env.local` on Brian's machine has fresh (post-rotation) `GOOGLE_AI_KEY`, `GEMMA_MODEL_NAME=gemma-4-26b-a4b-it`, real `ELEVENLABS_API_KEY` (carried over from Samson's). Three `ELEVENLABS_VOICE_*` keys still blank.
+- `npm run build` passes clean (TypeScript clean, all routes compile).
+- **Merge hygiene:** verify `src/lib/llm-call.ts` keeps both fixes (lines 36 + 40-41) after every merge from `sam`. The pattern of dropping these during merge has happened twice now.
 
 ## ⚠️ Outstanding from all phases
 
 - **Vercel deploy** — interactive, requires team auth. Run `npx vercel link` then `npx vercel --prod`. Set `GOOGLE_AI_KEY`, `GEMMA_MODEL_NAME`, `ELEVENLABS_API_KEY`, the three voice IDs, and `NEXT_PUBLIC_DEMO_USER_ID` in the dashboard.
 - **ElevenLabs voice IDs** — three blank entries in `.env.local`. Fill in before Phase 3 integration testing.
-- **Model speed** — `gemma-4-31b-it` is slow; consider a smaller Gemma 4 variant from AI Studio for dev speed.
+- **Model speed** — code default is now `gemma-4-26b-a4b-it` (faster). Samson's local `.env.local` overrides to `gemma-4-31b-it`; he should switch to 26B if 31B is still too slow at demo time.
 
 ## Don't forget (rules from PRD/spec)
 
