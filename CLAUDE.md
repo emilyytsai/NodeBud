@@ -16,7 +16,7 @@ Project context lives in `docs/`:
 
 ## Commands
 
-- `npm run dev` — Next.js dev server (Turbopack default in v16). Reads `.env.local`.
+- `npm run dev` — Next.js dev server. Uses `--webpack` flag (Turbopack has a bug with Windows paths containing spaces — `package.json` already has this set). Reads `.env.local`.
 - `npm run build` — Production build. Validates TypeScript and routing. Use this as the smoke test before committing.
 - `npm run start` — Serve the production build.
 - `npm run lint` — ESLint v9 flat config (`eslint.config.mjs`), extends `eslint-config-next`.
@@ -48,12 +48,17 @@ These break in non-obvious ways:
 - **Tailwind v4 has no `tailwind.config.ts`.** Theme tokens are in `src/app/globals.css` via `@theme inline`. shadcn init writes there directly.
 - **MediaPipe must be `dynamic()`-imported with `ssr: false`.** Top-level imports crash the server build.
 - **TTS route uses `export const runtime = "edge"`** so streaming `Response(upstream.body)` from ElevenLabs flows through. The default Node runtime buffers the entire audio.
-- **Iris refinement.** `FaceLandmarker.createFromOptions({ refineLandmarks: true })` is required or `face.faceLandmarks[0].length === 468` (instead of 478) and eye contact silently reports 0%.
+- **Iris refinement.** `FaceLandmarker.createFromOptions({ refineLandmarks: true })` is required or `face.faceLandmarks[0].length === 468` (instead of 478) and eye contact silently reports 0%. The option isn't in the 0.10.x TypeScript types — pass it with a spread cast: `...({ refineLandmarks: true } as object)`.
+- **`callGemmaJSON` / `responseMimeType` must appear twice.** Set `responseMimeType: "application/json"` in BOTH `getGenerativeModel`'s `generationConfig` AND in each `generateContent` call's `generationConfig`. The `generateContent` config overwrites (not merges) the model-level config — omitting it causes Gemma to return prose and `JSON.parse` to throw. The `llm-call.ts` helper already does this correctly; don't bypass it.
+- **`extractJSON` strips markdown fences.** Even with `responseMimeType` set, Gemma sometimes wraps output in ` ```json...``` `. The `extractJSON()` helper in `llm-call.ts` handles this before `JSON.parse`.
+- **React 19 `useRef` type change.** `useRef<HTMLVideoElement>(null)` now returns `RefObject<HTMLVideoElement | null>`, not `RefObject<HTMLVideoElement>`. Component props that accept a video ref must be typed `RefObject<HTMLVideoElement | null>`.
+- **Turbopack + Windows paths with spaces.** Turbopack (Next.js default bundler) crashes when the project path contains spaces (e.g., `C:\Users\Samson Du\`). The `package.json` dev script already has `--webpack` to work around this. Do not remove it.
+- **Gemma 4 31B is slow.** `gemma-4-31b-it` takes 20–30s for JD parsing, well over the 8s target. Use a smaller Gemma 4 variant from AI Studio (check the model picker for `gemma-4-*`) for dev and consider it for prod too.
 
 ## Conventions
 
 - Path alias: `@/*` → `./src/*`. Imports look like `@/lib/llm`, `@/components/ui/button`.
 - Package manager: **npm** (lockfile is `package-lock.json`).
-- Branch policy: working branch is `brian`, main is `master`. Don't push to `master` without dev confirmation.
+- Branch policy: each dev works on their own branch (`brian`, `sam`, etc.), main is `master`. Don't push to `master` without team confirmation.
 - LLM provider: **Gemma via the Google Gemini API** (`@google/generative-ai`). Don't substitute Ollama — it forfeits the prize and prevents Vercel deployment.
 - Excluded by team agreement (do not introduce): Ollama, LangChain, Zustand, Auth0.
