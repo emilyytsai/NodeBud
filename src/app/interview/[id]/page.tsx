@@ -33,6 +33,7 @@ export default function InterviewPage({
   const [cvDisabled, setCvDisabled] = useState(false);
   const [posture, setPosture] = useState(100);
   const [eyeContact, setEyeContact] = useState(100);
+  const [reviewUrl, setReviewUrl] = useState("/setup");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const questionStatsRef = useRef(new QuestionStats());
@@ -41,6 +42,9 @@ export default function InterviewPage({
     const saved = sessionStorage.getItem(`session:${sessionId}:setup`);
     if (saved) setSetup(JSON.parse(saved));
     setCvDisabled(new URLSearchParams(window.location.search).get("cv") === "off");
+    const keys = Object.keys(sessionStorage);
+    const sessionKey = keys.find(k => k === `session:${sessionId}:setup`);
+    if (sessionKey) setReviewUrl(`/setup/review?session=${sessionId}`);
   }, [sessionId]);
 
   const handleStreamGranted = useCallback((s: MediaStream) => setStream(s), []);
@@ -48,28 +52,31 @@ export default function InterviewPage({
   const persona = setup ? PERSONAS[setup.persona] : null;
 
   return (
-    <main className="min-h-screen p-6">
-      <div className="mx-auto max-w-4xl space-y-6">
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="relative mx-auto max-w-2xl px-4 pt-6 pb-12 space-y-4 sm:space-y-6">
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">Interview Room</h1>
-            {setup && (
-              <p className="text-sm text-muted-foreground">
-                {setup.parsed?.role_title ?? "Software Engineer"} · {persona?.label ?? setup.persona}
-              </p>
-            )}
-          </div>
-          <Link href="/setup" className="text-sm underline text-muted-foreground">
-            ← Exit
+        {/* Header */}
+        <div className="space-y-1">
+          <Link
+            href={reviewUrl}
+            className="inline-block text-amber-100 hover:text-white hover:-translate-y-1 transition text-sm sm:text-base"
+          >
+            ← &nbsp;Exit
           </Link>
+          <h1 className="setup-title">Interview Room</h1>
+          {setup && (
+            <p className="text-amber-100 text-sm sm:text-base">
+              {setup.parsed?.role_title ?? "Software Engineer"} · {persona?.label ?? setup.persona}
+            </p>
+          )}
         </div>
 
+        {/* Content */}
         {cvDisabled ? (
-          <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+          <div className="glass-input rounded-xl border border-white/20 p-6 sm:p-8 text-center text-amber-100">
             CV mode disabled — type your answers below.
             <br />
-            <span className="text-xs">(Voice + answer loop coming in Phase 3)</span>
+            <span className="text-xs text-gray-400">(Voice + answer loop coming in Phase 3)</span>
           </div>
         ) : !stream ? (
           <PermissionsGate onGranted={handleStreamGranted} />
@@ -86,7 +93,7 @@ export default function InterviewPage({
               />
             </div>
 
-            <div className="flex items-center justify-center rounded-lg border p-6 text-center text-sm text-muted-foreground">
+            <div className="glass-input flex items-center justify-center rounded-xl border border-white/20 p-6 text-center text-amber-100 min-h-[200px] md:min-h-0">
               Voice + answer loop coming in Phase 3
             </div>
           </div>
