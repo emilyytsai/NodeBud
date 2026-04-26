@@ -38,7 +38,6 @@ function ScoreRing({ value }: { value: number }) {
 }
 
 export function ScoreReport({ questions, answers, scores, verbalStatsList, roleTitle, persona }: ScoreReportProps) {
-  void answers;
   const router = useRouter();
   const [saved, setSaved] = useState(false);
 
@@ -103,6 +102,12 @@ export function ScoreReport({ questions, answers, scores, verbalStatsList, roleT
             <div className="flex-1">
               <div className="text-xs text-gray-500 mb-1">Question {i + 1}</div>
               <p className="text-amber-100 text-sm leading-relaxed">{questions[i]?.question}</p>
+              {answers[i] && (
+                <div className="mt-2">
+                  <div className="text-xs text-gray-500 mb-0.5">Your answer</div>
+                  <p className="text-xs text-gray-300 leading-relaxed">{answers[i]}</p>
+                </div>
+              )}
             </div>
             <div className="text-right shrink-0">
               <ScoreRing value={score.overall} />
