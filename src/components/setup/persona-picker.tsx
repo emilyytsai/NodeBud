@@ -19,7 +19,7 @@ export function PersonaPicker({ value, onChange, disabled }: PersonaPickerProps)
             type="button"
             disabled={disabled}
             onClick={() => onChange(persona.id as PersonaId)}
-            className={`rounded-lg border p-4 text-left transition-colors ${
+            className={`glass-input rounded-lg border p-4 text-left transition-colors ${
               value === persona.id
                 ? "border-foreground bg-foreground/5"
                 : "border-border hover:border-foreground/50"

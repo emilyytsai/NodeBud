@@ -18,7 +18,7 @@ export function JdTextarea({ value, onChange, disabled }: JdTextareaProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="min-h-[200px] resize-y"
+        className="min-h-[200px] resize-y glass-input"
       />
       <p className="text-xs text-muted-foreground">{value.length} characters</p>
     </div>

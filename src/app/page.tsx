@@ -1,10 +1,10 @@
 import Link from "next/link";
-import BgArt from "@/components/BgArt";
 
 export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center gap-6 p-8 overflow-hidden">
-      <BgArt />
+      
+      <div className="fixed inset-0 bg-black/2 z-0 pointer-events-none" />
 
       <div className="relative flex flex-col items-center gap-2">
         <h1 className="inverted-title">
@@ -17,7 +17,7 @@ export default function Home() {
           Practice interviews with an AI that watches your posture, listens to
           your answers, and remembers you next time.
         </p>
-        <p className="text-md text-center text-gray-300">
+        <p className="text-md text-gray-300">
           Webcam and audio are processed in your browser. We don't store video.
         </p>
 
@@ -28,7 +28,6 @@ export default function Home() {
         </div>
 
         <div className="flex gap-4 text-center mt-8">
-
           <div className="feature-card">
             <span className="text-3xl grayscale">👁️</span>
             <p className="text-sm font-semibold text-amber-100">Body Language</p>
@@ -46,7 +45,6 @@ export default function Home() {
             <p className="text-sm font-semibold text-amber-100">Remembers You</p>
             <p className="text-xs text-gray-400 max-w-[120px]">Tracks progress across sessions</p>
           </div>
-
         </div>
       </div>
     </main>
