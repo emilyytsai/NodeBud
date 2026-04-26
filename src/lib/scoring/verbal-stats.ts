@@ -21,7 +21,7 @@ export class VerbalStats {
   private pauseCount = 0;
   private startTime = performance.now();
   private lastTranscript = "";
-  private lastTranscriptTs = 0;
+  private lastTranscriptTs = performance.now();
   private wasSilent = true;
   private silenceStart: number | null = null;
   private pauseCountedThisSilence = false;
@@ -115,7 +115,7 @@ export class VerbalStats {
     this.pauseCount = 0;
     this.startTime = performance.now();
     this.lastTranscript = "";
-    this.lastTranscriptTs = 0;
+    this.lastTranscriptTs = performance.now();
     this.wasSilent = true;
     this.silenceStart = null;
     this.pauseCountedThisSilence = false;
