@@ -1,12 +1,15 @@
 import type { ParsedJd } from "@/lib/schemas/parsed-jd";
 import type { PersonaId } from "@/lib/personas";
 import { PERSONAS } from "@/lib/personas";
+import type { DifficultyId } from "@/lib/difficulty";
+import { DIFFICULTIES } from "@/lib/difficulty";
 
 type NextQuestionContext = {
   parsedJd: ParsedJd;
   persona: PersonaId;
   questionIndex: number;
   previousQuestions: string[];
+  difficulty: DifficultyId;
 };
 
 export const NEXT_QUESTION_SYSTEM = `You are conducting a job interview. Generate one focused interview question based on the role requirements and interview context. Return only valid JSON. Never repeat a previous question.`;
@@ -26,9 +29,12 @@ export function NEXT_QUESTION_USER(ctx: NextQuestionContext): string {
           .join("\n")}`
       : "";
 
+  const difficulty = DIFFICULTIES[ctx.difficulty];
+
   return `Role: ${ctx.parsedJd.role_title} (${ctx.parsedJd.seniority})
 Top skills required: ${skills}
 Interview style: ${persona.systemTone}
+${difficulty.promptClause}
 Question number: ${ctx.questionIndex + 1} of ${ctx.parsedJd.suggested_question_count}
 ${previousList}
 

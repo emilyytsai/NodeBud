@@ -4,9 +4,11 @@ import type { ParsedJd } from "@/lib/schemas/parsed-jd";
 
 interface ParsedCompetenciesProps {
   parsed: ParsedJd;
+  questionCount?: number;
 }
 
-export function ParsedCompetencies({ parsed }: ParsedCompetenciesProps) {
+export function ParsedCompetencies({ parsed, questionCount }: ParsedCompetenciesProps) {
+  const count = questionCount ?? parsed.suggested_question_count;
   return (
     <Card>
       <CardHeader>
@@ -41,7 +43,7 @@ export function ParsedCompetencies({ parsed }: ParsedCompetenciesProps) {
           </div>
         )}
         <p className="text-xs text-muted-foreground">
-          Generating {parsed.suggested_question_count} questions
+          Generating {count} {count === 1 ? "question" : "questions"}
         </p>
       </CardContent>
     </Card>
