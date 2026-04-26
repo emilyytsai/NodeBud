@@ -49,11 +49,11 @@ These break in non-obvious ways:
 - **MediaPipe must be `dynamic()`-imported with `ssr: false`.** Top-level imports crash the server build.
 - **TTS route uses `export const runtime = "edge"`** so streaming `Response(upstream.body)` from ElevenLabs flows through. The default Node runtime buffers the entire audio.
 - **Iris refinement.** `FaceLandmarker.createFromOptions({ refineLandmarks: true })` is required or `face.faceLandmarks[0].length === 468` (instead of 478) and eye contact silently reports 0%. The option isn't in the 0.10.x TypeScript types — pass it with a spread cast: `...({ refineLandmarks: true } as object)`.
-- **`callGemmaJSON` / `responseMimeType` must appear twice.** Set `responseMimeType: "application/json"` in BOTH `getGenerativeModel`'s `generationConfig` AND in each `generateContent` call's `generationConfig`. The `generateContent` config overwrites (not merges) the model-level config — omitting it causes Gemma to return prose and `JSON.parse` to throw. The `llm-call.ts` helper already does this correctly; don't bypass it.
-- **`extractJSON` strips markdown fences.** Even with `responseMimeType` set, Gemma sometimes wraps output in ` ```json...``` `. The `extractJSON()` helper in `llm-call.ts` handles this before `JSON.parse`.
+- **`gemma-3-4b-it` does not support JSON mode.** Do NOT add `responseMimeType: "application/json"` or `responseSchema` to `getGenerativeModel` or `generateContent` — it causes a 400 Bad Request. Both have been removed from `llm.ts` and `llm-call.ts`. Rely on prompting + `extractJSON()` instead.
+- **`extractJSON` strips markdown fences.** Gemma wraps output in ` ```json...``` ` even without JSON mode. The `extractJSON()` helper in `llm-call.ts` strips fences and extracts the balanced JSON object before `JSON.parse`. Do not bypass it.
 - **React 19 `useRef` type change.** `useRef<HTMLVideoElement>(null)` now returns `RefObject<HTMLVideoElement | null>`, not `RefObject<HTMLVideoElement>`. Component props that accept a video ref must be typed `RefObject<HTMLVideoElement | null>`.
 - **Turbopack + Windows paths with spaces.** Turbopack (Next.js default bundler) crashes when the project path contains spaces (e.g., `C:\Users\Samson Du\`). The `package.json` dev script already has `--webpack` to work around this. Do not remove it.
-- **Gemma 4 31B is slow.** `gemma-4-31b-it` takes 20–30s for JD parsing, well over the 8s target. Use a smaller Gemma 4 variant from AI Studio (check the model picker for `gemma-4-*`) for dev and consider it for prod too.
+- **Active model is `gemma-3-4b-it`.** Set in `GEMMA_MODEL_NAME` in `.env.local` and as the fallback in `src/lib/llm.ts`. This is the only model used — there is no separate flash model. Do not switch to a Gemma 4 variant without verifying JSON mode support first.
 
 ## Conventions
 

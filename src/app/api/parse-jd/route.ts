@@ -1,5 +1,4 @@
 import { callGemmaJSON } from "@/lib/llm-call";
-import { FLASH_MODEL } from "@/lib/llm";
 import { ParsedJdSchema, PARSED_JD_RESPONSE_SCHEMA } from "@/lib/schemas/parsed-jd";
 import { PARSE_JD_SYSTEM, PARSE_JD_USER } from "@/lib/prompts/parse-jd";
 
@@ -18,7 +17,6 @@ export async function POST(req: Request) {
       PARSE_JD_USER(jdText),
       ParsedJdSchema,
       {
-        model: FLASH_MODEL,
         responseSchema: PARSED_JD_RESPONSE_SCHEMA,
         maxRetries: 2,
         fallback: {
