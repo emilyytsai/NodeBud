@@ -2,26 +2,27 @@ import { z } from "zod";
 
 export const ScoredAnswerSchema = z.object({
   scores: z.object({
-    content_relevance: z.number(),
-    technical_accuracy: z.number(),
-    structure: z.number(),
-    specificity: z.number(),
-    communication: z.number(),
-    verbal_delivery: z.number(),
+    content_relevance: z.coerce.number().catch(5),
+    technical_accuracy: z.coerce.number().catch(5),
+    structure: z.coerce.number().catch(5),
+    specificity: z.coerce.number().catch(5),
+    communication: z.coerce.number().catch(5),
+    verbal_delivery: z.coerce.number().catch(5),
   }),
-  overall: z.number(),
-  strengths: z.array(z.string()),
-  improvements: z.array(z.string()),
-  weak_competencies: z.array(z.string()),
-  non_verbal_feedback: z.string().nullable(),
-  verbal_feedback: z.string().nullable(),
+  overall: z.coerce.number().catch(50),
+  strengths: z.array(z.string()).catch([]),
+  improvements: z.array(z.string()).catch([]),
+  weak_competencies: z.array(z.string()).catch([]),
+  non_verbal_feedback: z.string().nullish().catch(null),
+  verbal_feedback: z.string().nullish().catch(null),
   memory_writeback: z
     .object({
       competency: z.string(),
       evidence: z.string(),
-      confidence: z.number(),
+      confidence: z.coerce.number(),
     })
-    .nullable(),
+    .nullable()
+    .catch(null),
 });
 
 export type ScoredAnswer = z.infer<typeof ScoredAnswerSchema>;
