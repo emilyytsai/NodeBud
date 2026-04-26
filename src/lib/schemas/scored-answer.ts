@@ -2,24 +2,27 @@ import { z } from "zod";
 
 export const ScoredAnswerSchema = z.object({
   scores: z.object({
-    content_relevance: z.number(),
-    technical_accuracy: z.number(),
-    structure: z.number(),
-    specificity: z.number(),
-    communication: z.number(),
+    content_relevance: z.coerce.number().catch(5),
+    technical_accuracy: z.coerce.number().catch(5),
+    structure: z.coerce.number().catch(5),
+    specificity: z.coerce.number().catch(5),
+    communication: z.coerce.number().catch(5),
+    verbal_delivery: z.coerce.number().catch(5),
   }),
-  overall: z.number(),
-  strengths: z.array(z.string()),
-  improvements: z.array(z.string()),
-  weak_competencies: z.array(z.string()),
-  non_verbal_feedback: z.string().nullable(),
+  overall: z.coerce.number().catch(50),
+  strengths: z.array(z.string()).catch([]),
+  improvements: z.array(z.string()).catch([]),
+  weak_competencies: z.array(z.string()).catch([]),
+  non_verbal_feedback: z.string().nullish().catch(null),
+  verbal_feedback: z.string().nullish().catch(null),
   memory_writeback: z
     .object({
       competency: z.string(),
       evidence: z.string(),
-      confidence: z.number(),
+      confidence: z.coerce.number(),
     })
-    .nullable(),
+    .nullable()
+    .catch(null),
 });
 
 export type ScoredAnswer = z.infer<typeof ScoredAnswerSchema>;
@@ -35,6 +38,7 @@ export const SCORED_ANSWER_RESPONSE_SCHEMA = {
         structure: { type: "number" },
         specificity: { type: "number" },
         communication: { type: "number" },
+        verbal_delivery: { type: "number" },
       },
       required: [
         "content_relevance",
@@ -42,6 +46,7 @@ export const SCORED_ANSWER_RESPONSE_SCHEMA = {
         "structure",
         "specificity",
         "communication",
+        "verbal_delivery",
       ],
     },
     overall: { type: "number" },
@@ -49,6 +54,7 @@ export const SCORED_ANSWER_RESPONSE_SCHEMA = {
     improvements: { type: "array", items: { type: "string" } },
     weak_competencies: { type: "array", items: { type: "string" } },
     non_verbal_feedback: { type: "string", nullable: true },
+    verbal_feedback: { type: "string", nullable: true },
     memory_writeback: {
       type: "object",
       nullable: true,

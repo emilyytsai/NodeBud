@@ -5,12 +5,14 @@ import { useState } from "react";
 import type { ScoredAnswer } from "@/lib/schemas/scored-answer";
 import type { InterviewQuestion } from "@/lib/schemas/interview-question";
 import type { PersonaId } from "@/lib/personas";
+import type { VerbalStatsResult } from "@/lib/scoring/verbal-stats";
 import { saveSession } from "@/lib/session-store";
 
 interface ScoreReportProps {
   questions: InterviewQuestion[];
   answers: string[];
   scores: ScoredAnswer[];
+  verbalStatsList?: (VerbalStatsResult | null)[];
   roleTitle: string;
   persona: PersonaId;
 }
@@ -35,7 +37,7 @@ function ScoreRing({ value }: { value: number }) {
   );
 }
 
-export function ScoreReport({ questions, answers, scores, roleTitle, persona }: ScoreReportProps) {
+export function ScoreReport({ questions, answers, scores, verbalStatsList, roleTitle, persona }: ScoreReportProps) {
   void answers;
   const router = useRouter();
   const [saved, setSaved] = useState(false);
@@ -154,6 +156,27 @@ export function ScoreReport({ questions, answers, scores, roleTitle, persona }: 
               <p className="text-xs text-gray-400 italic leading-relaxed">
                 {score.non_verbal_feedback}
               </p>
+            </div>
+          )}
+
+          {score.verbal_feedback && (
+            <div className="border-t border-white/10 pt-3">
+              <div className="text-xs font-semibold text-purple-400 mb-1">Verbal delivery</div>
+              {verbalStatsList?.[i] && (
+                <p className="text-xs text-gray-500 mb-1">
+                  {verbalStatsList[i]!.filler_word_count} filler word{verbalStatsList[i]!.filler_word_count !== 1 ? "s" : ""}
+                  {verbalStatsList[i]!.filler_words_found.length > 0
+                    ? ` (${verbalStatsList[i]!.filler_words_found.join(", ")})`
+                    : ""}
+                  {" · "}
+                  {verbalStatsList[i]!.acoustic_hesitation_count} hesitation{verbalStatsList[i]!.acoustic_hesitation_count !== 1 ? "s" : ""}
+                  {" · "}
+                  {verbalStatsList[i]!.wpm > 0 ? `${verbalStatsList[i]!.wpm} WPM` : "pace unavailable"}
+                  {" · "}
+                  {verbalStatsList[i]!.long_pause_count} long pause{verbalStatsList[i]!.long_pause_count !== 1 ? "s" : ""}
+                </p>
+              )}
+              <p className="text-xs text-gray-400 italic leading-relaxed">{score.verbal_feedback}</p>
             </div>
           )}
         </div>

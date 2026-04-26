@@ -9,6 +9,7 @@ import type { PersonaId } from "@/lib/personas";
 export default function SetupPage() {
   const [jdText, setJdText] = useState("");
   const [persona, setPersona] = useState<PersonaId | null>(null);
+  const [questionCount, setQuestionCount] = useState(3);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function SetupPage() {
         const sessionId = `s_${Date.now()}`;
         sessionStorage.setItem(
           `session:${sessionId}:setup`,
-          JSON.stringify({ jdText, persona, parsed: data })
+          JSON.stringify({ jdText, persona, parsed: data, questionCount })
         );
         router.push(`/setup/review?session=${sessionId}`);
       }
@@ -83,6 +84,27 @@ export default function SetupPage() {
           onChange={setPersona}
           disabled={loading || jdText.length < 50}
         />
+
+        <div className="space-y-2">
+          <label className="text-sm text-amber-100">Number of questions</label>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setQuestionCount(n)}
+                disabled={loading}
+                className={`w-10 h-10 rounded-lg text-sm border transition-all duration-200 hover:-translate-y-1 ${
+                  questionCount === n
+                    ? "bg-amber-400/20 border-amber-400/80 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.2)]"
+                    : "border-white/30 text-gray-400 hover:border-white/60 hover:text-amber-100"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {error && (
           <p className="text-sm text-red-300 rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3">

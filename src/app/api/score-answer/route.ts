@@ -9,12 +9,14 @@ const SCORE_FALLBACK = {
     structure: 5,
     specificity: 5,
     communication: 5,
+    verbal_delivery: 5,
   },
   overall: 50,
   strengths: ["You completed the question."],
   improvements: ["Try to give a more specific example next time."],
   weak_competencies: [],
   non_verbal_feedback: null,
+  verbal_feedback: null,
   memory_writeback: null,
 };
 

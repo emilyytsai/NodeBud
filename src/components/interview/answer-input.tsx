@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createRecognizer } from "@/lib/speech-recognition";
+import { VerbalStats } from "@/lib/scoring/verbal-stats";
+import type { VerbalStatsResult } from "@/lib/scoring/verbal-stats";
 
 interface AnswerInputProps {
-  onSubmit: (transcript: string) => void;
+  onSubmit: (transcript: string, verbalStats: VerbalStatsResult | null) => void;
   disabled?: boolean;
 }
 
@@ -12,28 +14,92 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
   const [micActive, setMicActive] = useState(false);
   const [micSupported, setMicSupported] = useState(true);
   const [focused, setFocused] = useState(false);
+
   const recognizerRef = useRef<any>(null);
+  const verbalStatsRef = useRef(new VerbalStats());
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const micWasUsedRef = useRef(false);
 
   useEffect(() => {
     const SR = (window as any).webkitSpeechRecognition ?? (window as any).SpeechRecognition;
     if (!SR) setMicSupported(false);
   }, []);
 
-  const toggleMic = () => {
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      recognizerRef.current?.stop();
+      micStreamRef.current?.getTracks().forEach(t => t.stop());
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      if (audioContextRef.current) audioContextRef.current.close();
+    };
+  }, []);
+
+  const stopAudio = () => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    micStreamRef.current?.getTracks().forEach(t => t.stop());
+    micStreamRef.current = null;
+    if (audioContextRef.current) audioContextRef.current.close();
+    audioContextRef.current = null;
+    analyserRef.current = null;
+    rafRef.current = null;
+  };
+
+  const startAudio = async () => {
+    try {
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micStreamRef.current = micStream;
+      const ctx = new AudioContext();
+      const source = ctx.createMediaStreamSource(micStream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      audioContextRef.current = ctx;
+      analyserRef.current = analyser;
+
+      let frameCount = 0;
+      const loop = () => {
+        rafRef.current = requestAnimationFrame(loop);
+        frameCount++;
+        if (frameCount % 3 !== 0) return; // throttle to ~10fps
+        if (analyserRef.current) {
+          verbalStatsRef.current.sampleAudio(analyserRef.current);
+        }
+      };
+      rafRef.current = requestAnimationFrame(loop);
+    } catch {
+      // AudioContext unavailable — filler words + WPM still work via transcript
+    }
+  };
+
+  const toggleMic = async () => {
     if (micActive) {
       recognizerRef.current?.stop();
       recognizerRef.current = null;
       setMicActive(false);
+      stopAudio();
       return;
     }
     const r = createRecognizer(
-      (text) => setTranscript(text),
-      () => { setMicActive(false); setMicSupported(false); }
+      (text) => {
+        setTranscript(text);
+        verbalStatsRef.current.addInterimResult(text);
+      },
+      () => {
+        setMicActive(false);
+        setMicSupported(false);
+        stopAudio();
+      }
     );
     if (!r) { setMicSupported(false); return; }
     recognizerRef.current = r;
     r.start();
     setMicActive(true);
+    micWasUsedRef.current = true;
+    await startAudio();
   };
 
   const handleSubmit = () => {
@@ -41,8 +107,13 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
       recognizerRef.current?.stop();
       recognizerRef.current = null;
       setMicActive(false);
+      stopAudio();
     }
-    onSubmit(transcript);
+    const verbalResult = micWasUsedRef.current
+      ? verbalStatsRef.current.finalize(transcript)
+      : null;
+    verbalStatsRef.current.reset();
+    onSubmit(transcript, verbalResult);
     setTranscript("");
   };
 
