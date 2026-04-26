@@ -169,6 +169,8 @@ export function ScoreReport({ questions, answers, scores, verbalStatsList, roleT
                     ? ` (${verbalStatsList[i]!.filler_words_found.join(", ")})`
                     : ""}
                   {" · "}
+                  {verbalStatsList[i]!.acoustic_hesitation_count} hesitation{verbalStatsList[i]!.acoustic_hesitation_count !== 1 ? "s" : ""}
+                  {" · "}
                   {verbalStatsList[i]!.wpm > 0 ? `${verbalStatsList[i]!.wpm} WPM` : "pace unavailable"}
                   {" · "}
                   {verbalStatsList[i]!.long_pause_count} long pause{verbalStatsList[i]!.long_pause_count !== 1 ? "s" : ""}
