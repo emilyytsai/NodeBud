@@ -50,18 +50,20 @@ export default function SetupPage() {
     router.push(`/interview/${sessionId}`);
   };
 
-  return (
+return (
     <main className="relative min-h-screen overflow-hidden">
-      <Link
-        href="/"
-        className="absolute top-6 left-6 z-20 text-amber-100 hover:text-white hover:-translate-y-1 transition"
-      >
-        ← &nbsp;Back
-      </Link>
 
-      <div className="relative mx-auto max-w-2xl px-4 py-12 space-y-8 -mt-8">
+      <div className="relative mx-auto max-w-2xl px-4 pt-6 pb-12 space-y-8">
+        
+        <Link
+          href="/"
+          className="inline-block text-amber-100 hover:text-white hover:-translate-y-1 transition z-20"
+        >
+          ← &nbsp;Back
+        </Link>
+
         <div>
-          <h1 className="setup-title">Set up your interview</h1>
+          <h1 className="setup-title -mt-5">Set up your interview</h1>
           <p className="mt-2 text-amber-100">
             Paste a job description and pick your interviewer. We&apos;ll tailor the questions to the role.
           </p>
