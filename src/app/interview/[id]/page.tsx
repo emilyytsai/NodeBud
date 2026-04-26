@@ -99,6 +99,7 @@ export default function InterviewPage({
 
   useEffect(() => {
     if (istate.status !== "loading_intro" || !setup) return;
+    if (!stream && !cvDisabled) return;
     const { questionIndex, questions } = istate;
 
     if (questions.length > questionIndex) {
@@ -122,10 +123,11 @@ export default function InterviewPage({
       .then(r => r.json())
       .then(q => setIstate(s => ({ ...s, questions: [...s.questions, q], status: "speaking_question" })))
       .catch(() => setIstate(s => ({ ...s, status: "speaking_question" })));
-  }, [istate.status, istate.questionIndex, setup]);
+  }, [istate.status, istate.questionIndex, setup, stream, cvDisabled]);
 
   useEffect(() => {
     if (istate.status !== "speaking_question") return;
+    if (!stream && !cvDisabled) return;
     const { questionIndex, questions } = istate;
     const currentQ = questions[questionIndex];
     if (!currentQ) return;
@@ -136,7 +138,7 @@ export default function InterviewPage({
     speak(currentQ.question, () =>
       setIstate(s => ({ ...s, status: "awaiting_answer" }))
     );
-  }, [istate.status, istate.questionIndex, istate.questions, speak]);
+  }, [istate.status, istate.questionIndex, istate.questions, speak, stream, cvDisabled]);
 
   useEffect(() => {
     if (istate.status !== "scoring_answer") return;
