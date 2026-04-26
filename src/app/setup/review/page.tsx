@@ -10,6 +10,7 @@ function ReviewContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session");
   const [parsed, setParsed] = useState<ParsedJd | null>(null);
+  const [questionCount, setQuestionCount] = useState<number | undefined>(undefined);
   const [clicked, setClicked] = useState(false);
 
   useEffect(() => {
@@ -18,6 +19,7 @@ function ReviewContent() {
     if (!raw) return;
     const data = JSON.parse(raw);
     setParsed(data.parsed);
+    setQuestionCount(data.questionCount);
   }, [sessionId]);
 
   const handleStartInterview = () => {
@@ -50,7 +52,7 @@ function ReviewContent() {
             : "border-white/20 hover:border-white/70"
         }`}
       >
-        <ParsedCompetencies parsed={parsed} />
+        <ParsedCompetencies parsed={parsed} questionCount={questionCount} />
       </div>
 
       <div className="btn-wrapper">
