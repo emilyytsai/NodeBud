@@ -5,7 +5,7 @@ import { VerbalStats } from "@/lib/scoring/verbal-stats";
 import type { VerbalStatsResult } from "@/lib/scoring/verbal-stats";
 
 interface AnswerInputProps {
-  onSubmit: (transcript: string, verbalStats: VerbalStatsResult) => void;
+  onSubmit: (transcript: string, verbalStats: VerbalStatsResult | null) => void;
   disabled?: boolean;
 }
 
@@ -21,6 +21,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
+  const micWasUsedRef = useRef(false);
 
   useEffect(() => {
     const SR = (window as any).webkitSpeechRecognition ?? (window as any).SpeechRecognition;
@@ -97,6 +98,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
     recognizerRef.current = r;
     r.start();
     setMicActive(true);
+    micWasUsedRef.current = true;
     await startAudio();
   };
 
@@ -107,7 +109,9 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
       setMicActive(false);
       stopAudio();
     }
-    const verbalResult = verbalStatsRef.current.finalize(transcript);
+    const verbalResult = micWasUsedRef.current
+      ? verbalStatsRef.current.finalize(transcript)
+      : null;
     verbalStatsRef.current.reset();
     onSubmit(transcript, verbalResult);
     setTranscript("");

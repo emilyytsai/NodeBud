@@ -192,7 +192,7 @@ export default function InterviewPage({
     };
   }, [stop]);
 
-  const handleAnswerSubmit = useCallback((transcript: string, verbalStats: VerbalStatsResult) => {
+  const handleAnswerSubmit = useCallback((transcript: string, verbalStats: VerbalStatsResult | null) => {
     pendingVerbalStatsRef.current = verbalStats;
     setIstate(s => ({ ...s, answers: [...s.answers, transcript], status: "scoring_answer" }));
   }, []);
@@ -228,7 +228,6 @@ export default function InterviewPage({
             questions={istate.questions}
             answers={istate.answers}
             scores={istate.scores}
-            verbalStatsList={verbalStatsListRef.current}
             roleTitle={setup?.parsed?.role_title ?? "Software Engineer"}
             persona={setup?.persona ?? "encouraging_recruiter"}
           />
