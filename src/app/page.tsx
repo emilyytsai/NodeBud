@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center gap-6 p-4 sm:p-8 overflow-hidden">
+    <main className="relative flex min-h-screen flex-col items-center justify-center gap-6 p-8 pt-20 overflow-hidden">
       
       <div className="fixed inset-0 bg-black/2 z-0 pointer-events-none" />
 
@@ -34,7 +34,7 @@ export default function Home() {
           View past sessions →
         </Link>
 
-        <div className="flex flex-col sm:flex-row gap-4 text-center mt-8 w-full justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 text-center mt-5 w-full justify-center">
           <div className="feature-card mx-auto sm:mx-0">
             <span className="text-3xl grayscale">👁️</span>
             <p className="text-sm font-semibold text-amber-100">Body Language</p>
