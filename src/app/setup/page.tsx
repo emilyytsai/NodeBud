@@ -1,27 +1,39 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { JdTextarea } from "@/components/setup/jd-textarea";
 import { PersonaPicker } from "@/components/setup/persona-picker";
-import { ParsedCompetencies } from "@/components/setup/parsed-competencies";
-import type { ParsedJd } from "@/lib/schemas/parsed-jd";
 import type { PersonaId } from "@/lib/personas";
 
 export default function SetupPage() {
   const [jdText, setJdText] = useState("");
   const [persona, setPersona] = useState<PersonaId | null>(null);
   const [loading, setLoading] = useState(false);
-  const [parsed, setParsed] = useState<ParsedJd | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const savedJd = sessionStorage.getItem("setup:jdText");
+    const savedPersona = sessionStorage.getItem("setup:persona");
+    if (savedJd) setJdText(savedJd);
+    if (savedPersona) setPersona(savedPersona as PersonaId);
+  }, []);
+
+
+  useEffect(() => {
+    sessionStorage.setItem("setup:jdText", jdText);
+  }, [jdText]);
+
+  useEffect(() => {
+    if (persona) sessionStorage.setItem("setup:persona", persona);
+  }, [persona]);
 
   const canGenerate = jdText.length >= 50 && persona !== null && !loading;
 
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
-    setParsed(null);
     try {
       const res = await fetch("/api/parse-jd", {
         method: "POST",
@@ -32,7 +44,12 @@ export default function SetupPage() {
       if (!res.ok) {
         setError(data.error ?? "Something went wrong. Try again.");
       } else {
-        setParsed(data);
+        const sessionId = `s_${Date.now()}`;
+        sessionStorage.setItem(
+          `session:${sessionId}:setup`,
+          JSON.stringify({ jdText, persona, parsed: data })
+        );
+        router.push(`/setup/review?session=${sessionId}`);
       }
     } catch {
       setError("Network error. Check your connection and try again.");
@@ -41,29 +58,19 @@ export default function SetupPage() {
     }
   };
 
-  const handleStartInterview = () => {
-    const sessionId = `s_${Date.now()}`;
-    sessionStorage.setItem(
-      `session:${sessionId}:setup`,
-      JSON.stringify({ jdText, persona, parsed })
-    );
-    router.push(`/interview/${sessionId}`);
-  };
-
-return (
+  return (
     <main className="relative min-h-screen overflow-hidden">
-
       <div className="relative mx-auto max-w-2xl px-4 pt-6 pb-12 space-y-8">
-        
+
         <Link
           href="/"
-          className="inline-block text-amber-100 hover:text-white hover:-translate-y-1 transition z-20"
+          className="inline-block text-amber-100 hover:text-white hover:-translate-y-1 transition"
         >
           ← &nbsp;Back
         </Link>
 
         <div>
-          <h1 className="setup-title -mt-5">Set up your interview</h1>
+          <h1 className="setup-title">Set up your interview</h1>
           <p className="mt-2 text-amber-100">
             Paste a job description and pick your interviewer. We&apos;ll tailor the questions to the role.
           </p>
@@ -93,16 +100,6 @@ return (
           </button>
         </div>
 
-        {parsed && (
-          <div className="space-y-4">
-            <ParsedCompetencies parsed={parsed} />
-            <div className="btn-wrapper">
-              <button onClick={handleStartInterview} className="btn-primary">
-                Start interview →
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );
