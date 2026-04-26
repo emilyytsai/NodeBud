@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, type RefObject } from "react";
 import { initLandmarkers } from "@/lib/mediapipe/init";
-import { postureScore, RollingScore } from "@/lib/scoring/posture";
+import { postureScore, RollingScore, StabilityTracker } from "@/lib/scoring/posture";
 import { EyeContactTracker } from "@/lib/scoring/eye-contact";
 import { getCalibrationStatus, type CalibrationStatus } from "@/lib/scoring/calibration";
 import type { QuestionStats } from "@/lib/scoring/question-stats";
@@ -33,6 +33,7 @@ export default function TrackingLoop({
   const frameCountRef = useRef(0);
   const rollingPosture = useRef(new RollingScore());
   const rollingEyeContact = useRef(new RollingScore());
+  const stabilityTracker = useRef(new StabilityTracker());
   const eyeTracker = useRef(new EyeContactTracker());
   const firstFrameLogged = useRef(false);
 
@@ -81,10 +82,19 @@ export default function TrackingLoop({
               ? eyeTracker.current.isLookingAtCamera(faceLandmarks)
               : false;
 
-            if (posture !== null) rollingPosture.current.push(posture);
+            if (posture !== null) {
+              rollingPosture.current.push(posture);
+              const ls = poseLandmarks![11];
+              const rs = poseLandmarks![12];
+              if (ls && rs) stabilityTracker.current.push((ls.x + rs.x) / 2);
+            }
             rollingEyeContact.current.push(lookingAtCamera ? 100 : 0);
 
-            onPostureChange(rollingPosture.current.get());
+            // Combine smoothed posture (85%) with stability score (15%)
+            const smoothedPosture = rollingPosture.current.get();
+            const stability = stabilityTracker.current.getScore();
+            const combined = Math.round(smoothedPosture * 0.85 + stability * 0.15);
+            onPostureChange(combined);
             onEyeContactChange(rollingEyeContact.current.get());
 
             // Only sample stats when landmarks are reliable
