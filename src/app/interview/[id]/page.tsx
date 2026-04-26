@@ -215,7 +215,13 @@ export default function InterviewPage({
         </div>
 
         {istate.status === "show_report" ? (
-          <ScoreReport questions={istate.questions} answers={istate.answers} scores={istate.scores} />
+          <ScoreReport
+            questions={istate.questions}
+            answers={istate.answers}
+            scores={istate.scores}
+            roleTitle={setup?.parsed?.role_title ?? "Software Engineer"}
+            persona={setup?.persona ?? "encouraging_recruiter"}
+          />
         ) : !stream && !cvDisabled ? (
           <PermissionsGate onGranted={handleStreamGranted} />
         ) : (

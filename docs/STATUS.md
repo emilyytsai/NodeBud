@@ -1,6 +1,6 @@
 # Build Status
 
-**Last updated:** 2026-04-25 — handoff after Phase 3 (Samson's session)
+**Last updated:** 2026-04-26 — handoff after Phase 4 (Brian's session)
 **Read order for a fresh Claude Code:** `CLAUDE.md` → this file → `docs/PLAN.md` → (drill into `docs/PRD.md` / `docs/MVP-SPEC.md` as needed)
 
 ## ✅ What's done — Phase 0: Scaffold hardening
@@ -93,33 +93,64 @@ The `.env.local.example` and `src/lib/llm.ts` fallback had drifted to `gemma-4-2
 **`FLASH_MODEL` removed:**
 All calls now go through a single model (`gemma-3-4b-it`). `FLASH_MODEL` export deleted from `src/lib/llm.ts`, import + `model:` override removed from both `parse-jd/route.ts` and `score-answer/route.ts`. `FLASH_MODEL_NAME` removed from `.env.local.example`.
 
-## ▶️ What's next — Phase 4: Polish + dashboard + ElevenLabs on
+## ✅ What's done — Phase 4: Polish + dashboard + ElevenLabs on
 
-Full plan: `docs/PLAN.md` § Phase 4. Summary:
+Dashboard is live, sessions persist across page reloads, ElevenLabs voice plays per persona, global header navigates between pages.
 
-1. **`src/lib/session-store.ts`** — `listSessions()` + `saveSession()` capped at 50 entries, backed by `localStorage`
-2. **`src/app/dashboard/page.tsx`** — session history page
-3. **`src/components/dashboard/trend-chart.tsx`** — Recharts line chart (`npm install recharts`)
-4. **`src/components/dashboard/session-card.tsx`** — shadcn `<Card>` with date / role / score / "View Details"
-5. **Modify `src/components/interview/score-report.tsx`** — add "Save Session" button
-6. **Modify `src/app/page.tsx`** — add dashboard link
-7. **Modify `src/app/layout.tsx`** — header bar with brand + dashboard link
-8. **ElevenLabs flip-on** — fill in `ELEVENLABS_VOICE_ENCOURAGING/STRICT/PEER` in `.env.local`, verify quota, remove any `?tts=browser` dev defaults
-9. **Seed data** — run the console snippet from `docs/PLAN.md` § Phase 4 on demo laptop Saturday night
+### Files created in Phase 4
 
-## Branch / env state (2026-04-25, end of Phase 3 session)
+- `src/lib/session-store.ts` — `listSessions()` + `saveSession()` + `getSession()`. Backed by `localStorage` (`careerprep:sessions`), capped at 50 entries, try/catch around all reads/writes (returns `[]` / no-op on quota or parse failure).
+- `src/components/dashboard/session-card.tsx` — glass card with date, role, persona label, score (green/amber/red threshold reused from `score-report.tsx`), and weak-competency badges (shadcn `<Badge>` outline variant).
+- `src/components/dashboard/trend-chart.tsx` — Recharts `<LineChart>` in a `<ResponsiveContainer>`. X-axis = sessions sorted oldest→newest; Y-axis = `overall_score 0–100`. Empty-state message when 0 sessions; renders a single dot if 1.
+- `src/app/dashboard/page.tsx` — `"use client"` (because `session-store` reads `localStorage`). Empty state CTA → `/setup`. List + chart when ≥1 session.
+- `src/components/site-header.tsx` — `"use client"`. Fixed top header with brand + Sessions + New Interview links. **Hidden on `/interview/*` routes** via `usePathname()` check (the interview room has its own internal Exit button — a global header would clash).
 
-- Samson worked on branch `sam`. Phases 1–3 files exist but are **not yet committed** (all untracked).
-- `npm run build` passes cleanly as of Phase 3 completion.
-- `.env.local` on Samson's machine: **GOOGLE_AI_KEY is the leaked/revoked key — must be replaced with a new key before the app will work.** `GEMMA_MODEL_NAME=gemma-3-4b-it`. `FLASH_MODEL_NAME` line should be deleted.
-- Three `ELEVENLABS_VOICE_*` keys are still blank → TTS falls back to browser `speechSynthesis`. Fill these in during Phase 4.
+### Files modified in Phase 4
+
+- `src/components/interview/score-report.tsx` — new props `roleTitle`, `persona`. "Save session" primary button (disables → "Saved" after click, then `router.push("/dashboard")`). Aggregates `weak_competencies` across all per-question scores. Demoted "Start new interview" to a subtle text link.
+- `src/app/interview/[id]/page.tsx` — passes `roleTitle` + `persona` to `<ScoreReport>` with the same fallbacks already used in the score-answer POST body (`"Software Engineer"` / `"encouraging_recruiter"`).
+- `src/app/layout.tsx` — mounts `<SiteHeader />`, updates metadata title to `"NodeBud — CareerPrep AI"`.
+- `src/app/page.tsx` — adds "View past sessions →" secondary link below primary CTA.
+- `src/app/api/tts/route.ts` — adds detailed error response body (status + ElevenLabs body) and `console.warn` logging on failure paths. Helps future debugging without touching the route.
+- `.env.local.example` — leaked key replaced with placeholder; `GEMMA_MODEL_NAME` reset to `gemma-3-4b-it`; `FLASH_MODEL_NAME` deleted; stray `be48207` line removed.
+- `package.json` / `package-lock.json` — adds `recharts` dependency.
+
+### Bugs fixed / incidents in Phase 4 session
+
+**ElevenLabs `category: professional` voices fail with 402 on free tier.**
+Initial voice IDs were copied from the ElevenLabs Voice Library — these are `category: "professional"` (community/curated) voices. Free-tier API rejects them with `402 Payment Required {"detail":{"code":"paid_plan_required","message":"Free users cannot use library voices via the API"}}`. Fix: use `category: "premade"` voices only (the built-in defaults like Sarah, Daniel, Will). Verify by GET `https://api.elevenlabs.io/v1/voices` with the API key — each entry has a `category` field. See CLAUDE.md "Stack-specific gotchas" for permanent note.
+
+**Edge runtime `console.warn` doesn't surface in dev terminal.**
+Workaround: include diagnostic info in the HTTP response body so it's visible in DevTools → Network → Response. The TTS route now does both (warn + body) so either approach works depending on environment.
+
+## ▶️ What's next — Phase 4.5 (gated) OR Phase 5 (submission)
+
+**Phase 4.5 (Backboard) is gated.** Per `docs/PLAN.md` § Phase 4.5, only proceed if at hour 18 ALL of:
+- Production deploy is live and stable
+- Full interview loop works end-to-end
+- Dashboard with seeded data renders cleanly
+- Demo video script is drafted
+- No blocking bugs
+
+If any are false, **skip to Phase 5**.
+
+**Phase 5 (Devpost + demo video):** see `docs/MVP-SPEC.md` § Phase 5. Critical: writeup MUST say **"Gemma 4 via the Google Gemini API"** verbatim (Tier 1 prize criterion). Record a backup video Sunday morning.
+
+## Branch / env state (2026-04-26, end of Phase 4 session)
+
+- Brian on branch `brian`. Phase 4 work staged for commit (see commit message in handoff).
+- `npm run build` passes cleanly.
+- `recharts` added to dependencies.
+- `.env.local` working: ElevenLabs voice plays for all three personas using `premade` voice IDs (Sarah/Daniel/Will at the time of writing).
+- `.env.local.example` no longer leaks any keys.
 
 ## ⚠️ Outstanding before next session
 
-- **🔴 Replace GOOGLE_AI_KEY** — old key is revoked. Generate a new one at `aistudio.google.com` and update `.env.local`.
-- **🔴 Replace ELEVENLABS_API_KEY** — old key was also committed and may be compromised. Generate a new one in the ElevenLabs dashboard and update `.env.local`.
-- **Commit all Phase 3 files** — everything in `src/` is untracked. Stage and commit to `sam` branch.
-- Delete `FLASH_MODEL_NAME` line from `.env.local` (no longer used).
+- **🟠 Rotate `GOOGLE_AI_KEY`** — the value currently in `.env.local` matches the one previously flagged as leaked. Whether or not Google actually revoked it, treat as compromised. Rotate AFTER demo, not before (avoid mid-demo failures).
+- **🟠 Rotate `ELEVENLABS_API_KEY`** — current value was visible in chat transcripts during Phase 4 debugging. Rotate AFTER demo.
+- **Run seed-data console snippet** from `docs/PLAN.md` § Phase 4 on demo laptop Saturday night (now Sunday) so the trend chart looks lived-in.
+- **Rehearse the demo end-to-end at least twice** — once normal, once with `?cv=off` and `?tts=browser` as fallback drills (PRD §10.5).
+- **Pre-record a backup demo video** Sunday morning (PRD §11 universal — absolute fallback).
 
 ## Don't forget (rules from PRD/spec)
 

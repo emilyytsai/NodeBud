@@ -27,6 +27,13 @@ export default function Home() {
           </Link>
         </div>
 
+        <Link
+          href="/dashboard"
+          className="mt-6 text-sm text-gray-300 hover:text-amber-100 underline-offset-4 hover:underline transition-colors"
+        >
+          View past sessions →
+        </Link>
+
         <div className="flex flex-col sm:flex-row gap-4 text-center mt-8 w-full justify-center">
           <div className="feature-card mx-auto sm:mx-0">
             <span className="text-3xl grayscale">👁️</span>

@@ -1,13 +1,18 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import type { ScoredAnswer } from "@/lib/schemas/scored-answer";
 import type { InterviewQuestion } from "@/lib/schemas/interview-question";
+import type { PersonaId } from "@/lib/personas";
+import { saveSession } from "@/lib/session-store";
 
 interface ScoreReportProps {
   questions: InterviewQuestion[];
   answers: string[];
   scores: ScoredAnswer[];
+  roleTitle: string;
+  persona: PersonaId;
 }
 
 function ScoreBar({ value }: { value: number }) {
@@ -30,7 +35,11 @@ function ScoreRing({ value }: { value: number }) {
   );
 }
 
-export function ScoreReport({ questions, answers, scores }: ScoreReportProps) {
+export function ScoreReport({ questions, answers, scores, roleTitle, persona }: ScoreReportProps) {
+  void answers;
+  const router = useRouter();
+  const [saved, setSaved] = useState(false);
+
   const overallAvg =
     scores.length > 0
       ? Math.round(scores.reduce((s, r) => s + r.overall, 0) / scores.length)
@@ -38,6 +47,28 @@ export function ScoreReport({ questions, answers, scores }: ScoreReportProps) {
 
   const overallColor = overallAvg >= 70 ? "text-green-400" : overallAvg >= 40 ? "text-amber-400" : "text-red-400";
   const overallLabel = overallAvg >= 70 ? "Great job!" : overallAvg >= 40 ? "Good effort!" : "Keep practicing!";
+
+  const handleSave = () => {
+    if (saved) return;
+    const weakSet = new Set<string>();
+    scores.forEach((s) => s.weak_competencies.forEach((c) => weakSet.add(c)));
+    saveSession({
+      id: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `s-${Date.now()}`,
+      date: new Date().toISOString(),
+      role_title: roleTitle,
+      persona,
+      overall_score: overallAvg,
+      weak_competencies: Array.from(weakSet),
+      questions: scores.map((s, i) => ({
+        question: questions[i]?.question ?? "",
+        overall: s.overall,
+        strengths: s.strengths,
+        improvements: s.improvements,
+      })),
+    });
+    setSaved(true);
+    router.push("/dashboard");
+  };
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -128,10 +159,25 @@ export function ScoreReport({ questions, answers, scores }: ScoreReportProps) {
         </div>
       ))}
 
-      <div className="btn-wrapper pb-4">
-        <Link href="/setup" className="btn-primary block text-center">
-          Start New Interview
-        </Link>
+      <div className="space-y-3 pb-4">
+        <div className="btn-wrapper">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saved}
+            className="btn-primary block text-center w-full"
+          >
+            {saved ? "Saved" : "Save session"}
+          </button>
+        </div>
+        <div className="text-center">
+          <Link
+            href="/setup"
+            className="text-sm text-gray-400 hover:text-amber-100 underline-offset-4 hover:underline transition-colors"
+          >
+            Start a new interview →
+          </Link>
+        </div>
       </div>
 
     </div>
