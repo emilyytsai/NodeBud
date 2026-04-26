@@ -145,34 +145,52 @@ Verbal delivery metrics are fully wired end-to-end. Filler word detection, speak
 - `docs/superpowers/specs/2026-04-26-verbal-delivery-metrics-design.md` — full design spec (approved before implementation).
 - `docs/superpowers/plans/2026-04-26-verbal-delivery-metrics.md` — implementation plan.
 
-## ▶️ What's next — Phase 4.5 (gated) OR Phase 5 (submission)
+## ✅ What's done — CV polish session (2026-04-26, Samson)
 
-**Phase 4.5 (Backboard) is gated.** Per `docs/PLAN.md` § Phase 4.5, only proceed if at hour 18 ALL of:
+Landmark visualizer, posture calibration, and posture scoring algorithm all significantly improved. No new dependencies.
 
-- Production deploy is live and stable
-- Full interview loop works end-to-end
-- Dashboard with seeded data renders cleanly
-- Demo video script is drafted
-- No blocking bugs
+### Files created
 
-If any are false, **skip to Phase 5**.
+- `src/lib/scoring/calibration.ts` — `CalibrationStatus` type (`"ok" | "missing_shoulders" | "missing_face" | "no_detection"`) + `getCalibrationStatus(pose, face)`. Uses both visibility score AND normalized coordinate bounds check to detect out-of-frame landmarks (visibility alone is unreliable — MediaPipe predicts positions even off-screen).
+- `src/components/interview/landmark-canvas.tsx` — `<LandmarkCanvas show videoRef landmarks />` canvas overlay. Draws upper-body pose skeleton (nose, shoulders, elbows, wrists, hips + connecting lines) and key face points (eye corners in cyan + iris centers in yellow). Positions EMA-smoothed at α=0.3 to eliminate per-frame jitter. X-coordinates flipped to match `scale-x-[-1]` on the video.
+- `src/components/interview/calibration-banner.tsx` — `<CalibrationBanner status />` yellow warning strip. Returns null when `status === "ok"`. Three messages keyed to the three non-ok statuses.
+
+### Files modified
+
+- `src/lib/scoring/posture.ts` — Major rewrite of `postureScore()`. Now uses 5 landmarks (added ears 7 & 8). All thresholds normalized by shoulder width so score is invariant to camera distance. Five penalty components: shoulder tilt, head lean, head centering (existing three, re-tuned), plus head pitch (nodding down, ear-based, max −20) and head tilt relative to body (sideways head tilt, ear-based, max −15). Ear penalties only applied when ears have visibility > 0.3 to avoid noise from hair occlusion. Added `StabilityTracker` class: tracks shoulder midpoint X variance over a 5s window; returns 0–100 stability score.
+- `src/components/interview/tracking-loop.tsx` — Imports and instantiates `StabilityTracker`. Adds `onLandmarksChange` and `onCalibrationChange` optional callbacks called every processed frame. Skips `questionStats.sample()` when calibration status is not `"ok"`. Final posture output = `smoothedPosture × 0.85 + stability × 0.15`.
+- `src/components/interview/confidence-gauges.tsx` — Added `calibrated` prop (shows `"—"` in gray when false), `showOverlay` + `onToggleOverlay` props (renders "Show landmarks" checkbox with `accent-cyan-400`).
+- `src/app/interview/[id]/page.tsx` — Added `calibrationStatus`, `showOverlay`, `landmarks` state. `handleLandmarksChange` callback wired to `TrackingLoop`. `CalibrationBanner` rendered as `absolute` overlay inside the video container (no layout shift). `LandmarkCanvas` rendered as sibling to `<video>` inside same container. `ConfidenceGauges` receives all new props.
+
+### Known tech bottlenecks (by design, not bugs)
+
+- **Covered eyes → eye contact stays 100%**: MediaPipe interpolates iris position from face geometry even when occluded. Unfixable without hand/occlusion detection.
+- **Up/down gaze poorly detected**: Eye contact only tracks horizontal iris ratio. Vertical resolution is too low and vertical thresholds produce false positives.
+- **Shoulder landmark ghost persistence**: After moving shoulders out of frame, MediaPipe continues to predict their position for a short window before dropping. Noted for future fix.
+
+### Design docs
+
+- `docs/superpowers/specs/2026-04-26-landmark-visualizer-calibration-design.md`
+- `docs/superpowers/plans/2026-04-26-landmark-visualizer-calibration.md`
+
+## ▶️ What's next — Phase 5 (submission)
 
 **Phase 5 (Devpost + demo video):** see `docs/MVP-SPEC.md` § Phase 5. Critical: writeup MUST say **"Gemma 4 via the Google Gemini API"** verbatim (Tier 1 prize criterion). Record a backup video Sunday morning.
 
-## Branch / env state (2026-04-26, end of Phase 4.5 session)
+## Branch / env state (2026-04-26, end of CV polish session)
 
-- Samson on branch `sam`. Phase 4.5 verbal delivery metrics committed.
-- `npm run build` passes cleanly (no new dependencies added — Web Audio API and AudioContext are browser built-ins).
+- Samson on branch `sam`. All CV polish commits in. `npm run build` passes cleanly.
 - `.env.local` working: ElevenLabs voice plays for all three personas using `premade` voice IDs.
 - `.env.local.example` no longer leaks any keys.
 
-## ⚠️ Outstanding before next session
+## ⚠️ Outstanding before demo
 
-- **🟠 Rotate `GOOGLE_AI_KEY`** — the value currently in `.env.local` matches the one previously flagged as leaked. Whether or not Google actually revoked it, treat as compromised. Rotate AFTER demo, not before (avoid mid-demo failures).
-- **🟠 Rotate `ELEVENLABS_API_KEY`** — current value was visible in chat transcripts during Phase 4 debugging. Rotate AFTER demo.
-- **Run seed-data console snippet** from `docs/PLAN.md` § Phase 4 on demo laptop Saturday night (now Sunday) so the trend chart looks lived-in.
+- **🟠 Rotate `GOOGLE_AI_KEY`** — treat as compromised. Rotate AFTER demo to avoid mid-demo failures.
+- **🟠 Rotate `ELEVENLABS_API_KEY`** — same reason.
+- **Run seed-data console snippet** from `docs/PLAN.md` § Phase 4 on demo laptop so the trend chart looks lived-in.
 - **Rehearse the demo end-to-end at least twice** — once normal, once with `?cv=off` and `?tts=browser` as fallback drills (PRD §10.5).
 - **Pre-record a backup demo video** Sunday morning (PRD §11 universal — absolute fallback).
+- **Future fix (low priority):** shoulder landmark ghost persistence after moving out of frame — MediaPipe holds predicted positions briefly before dropping.
 
 ## Don't forget (rules from PRD/spec)
 
