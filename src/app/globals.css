@@ -60,6 +60,14 @@ body {
   border-radius: 1rem;
 }
 
+.question-panel {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 0.75rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+}
+
 .glass-input {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);

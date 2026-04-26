@@ -11,6 +11,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
   const [transcript, setTranscript] = useState("");
   const [micActive, setMicActive] = useState(false);
   const [micSupported, setMicSupported] = useState(true);
+  const [focused, setFocused] = useState(false);
   const recognizerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -48,10 +49,17 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
   return (
     <div className="space-y-3">
       <textarea
-        className="glass-input w-full rounded-xl p-3 text-amber-100 placeholder:text-gray-500 resize-none min-h-[100px] focus:outline-none focus:border-amber-300/50"
+        className="glass-input w-full rounded-xl p-3 text-amber-100 placeholder:text-gray-500 resize-none min-h-[100px] focus:outline-none transition-all duration-200"
+        style={{
+          border: focused
+            ? '2.5px solid rgba(255, 255, 255, 0.8)'
+            : '1px solid rgba(255, 255, 255, 0.7)',
+        }}
         placeholder={micActive ? "Listening… speak your answer" : "Type your answer or use the mic"}
         value={transcript}
         onChange={(e) => setTranscript(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         disabled={disabled}
       />
       <div className="flex gap-2">
@@ -59,13 +67,15 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
           <button
             onClick={toggleMic}
             disabled={disabled}
-            className={`px-4 py-2 rounded-lg text-sm border transition ${
+            className={`shrink-0 w-16 py-2 rounded-lg text-xs border transition-all duration-200 text-center hover:-translate-y-1 ${
               micActive
-                ? "bg-red-500/20 border-red-400/50 text-red-300"
-                : "border-white/20 text-amber-100 hover:bg-white/10"
+                ? "bg-red-500/30 border-red-400/70 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                : "border-white/60 text-amber-100 bg-amber-100/5 hover:bg-amber-100/15 hover:border-amber-100/70 hover:shadow-[0_0_12px_rgba(251,191,36,0.2)]"
             }`}
           >
-            {micActive ? "⏹ Stop mic" : "🎤 Mic"}
+            {micActive ? (
+              <span>⏹ Stop<br />mic</span>
+            ) : "🎤 Mic"}
           </button>
         )}
         <div className="btn-wrapper flex-1">
