@@ -9,7 +9,7 @@
 - shadcn/ui initialized: `style: "base-nova"` (**Base UI under the hood, NOT Radix** — `Button` has no `asChild` prop), `baseColor: "neutral"`
 - shadcn primitives installed in `src/components/ui/`: `button`, `card`, `textarea`, `select`, `label`, `slider`, `sonner`, `badge`, `separator`
 - `src/app/layout.tsx` — CareerPrep metadata, `<Toaster />` mount, Geist sans aligned to `--font-sans`
-- `src/app/api/health/route.ts` — returns `{ ok: true }`
+- `src/app/api/health/route.ts` — returns `{ ok: true }` (had a parse error from a stray `}` — fixed by Samson)
 - `.env.local.example` — expanded with `GEMMA_MODEL_NAME`, three `ELEVENLABS_VOICE_*` keys, `BACKBOARD_API_KEY`, `NEXT_PUBLIC_DEMO_USER_ID`
 
 ## ✅ What's done — Phase 1: Gemma JD parsing + question generation
